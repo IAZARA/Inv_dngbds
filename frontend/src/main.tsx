@@ -6,6 +6,28 @@ import './index.css';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 
+const brandingIconUrl = new URL('./assets/logo_ministerio.png', import.meta.url).href;
+
+const ensureFavicon = () => {
+  const links = document.querySelectorAll<HTMLLinkElement>("link[rel*='icon']");
+  if (links.length === 0) {
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/png';
+    link.href = brandingIconUrl;
+    document.head.appendChild(link);
+    return;
+  }
+
+  links.forEach((link) => {
+    link.type = 'image/png';
+    link.href = brandingIconUrl;
+  });
+};
+
+ensureFavicon();
+document.title = 'MINSEG-DFI';
+
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
