@@ -1,0 +1,7 @@
+
+> investigacion-backend@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/server.ts
+
+[INFO] 16:03:30 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.2)
+[dotenv@17.2.2] injecting env (8) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Servidor escuchando en puerto 4000

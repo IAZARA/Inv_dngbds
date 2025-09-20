@@ -1,0 +1,6 @@
+node_modules
+dist
+Dockerfile
+.env
+npm-debug.log
+.vite

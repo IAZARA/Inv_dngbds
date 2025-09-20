@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+  CONSULTANT
+}
+
+enum PersonNationality {
+  ARGENTINA
+  OTRO
+}
+
+model User {
+  id            String          @id @default(uuid()) @db.Uuid
+  firstName     String
+  lastName      String
+  email         String          @unique
+  passwordHash  String
+  role          UserRole        @default(OPERATOR)
+  isActive      Boolean         @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  collectedData SourceRecord[]  @relation("SourceRecordCollectedBy")
+}
+
+model Person {
+  id             String           @id @default(uuid()) @db.Uuid
+  identityNumber String?          @unique
+  firstName      String?
+  lastName       String?
+  birthdate      DateTime?
+  notes          String?
+  nationality    PersonNationality @default(ARGENTINA)
+  otherNationality String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  records        SourceRecord[]
+  addresses      PersonAddress[]
+  cases          PersonCase[]
+}
+
+model Source {
+  id          String         @id @default(uuid()) @db.Uuid
+  name        String
+  kind        String
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  records     SourceRecord[]
+}
+
+model SourceRecord {
+  id             String    @id @default(uuid()) @db.Uuid
+  personId       String    @db.Uuid
+  sourceId       String    @db.Uuid
+  collectedById  String?   @db.Uuid
+  collectedAt    DateTime  @default(now())
+  rawPayload     Json?
+  summary        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  person         Person    @relation(fields: [personId], references: [id])
+  source         Source    @relation(fields: [sourceId], references: [id])
+  collectedBy    User?     @relation("SourceRecordCollectedBy", fields: [collectedById], references: [id])
+
+  @@index([personId])
+  @@index([sourceId])
+}
+
+model Address {
+  id          String           @id @default(uuid()) @map("address_id") @db.Uuid
+  addressText String           @map("address_text")
+  persons     PersonAddress[]
+
+  @@map("addresses")
+}
+
+model PersonAddress {
+  personId     String    @map("person_id") @db.Uuid
+  addressId    String    @map("address_id") @db.Uuid
+  principal    Boolean   @default(false)
+  vigenteDesde DateTime? @map("vigente_desde")
+  vigenteHasta DateTime? @map("vigente_hasta")
+
+  person  Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  address Address @relation(fields: [addressId], references: [id], onDelete: Cascade)
+
+  @@id([personId, addressId])
+  @@map("person_addresses")
+}
+
+model Case {
+  id               String        @id @default(uuid()) @map("case_id") @db.Uuid
+  numeroExpediente String?       @map("numero_expediente")
+  numeroCausa      String?       @map("numero_causa")
+  fechaHecho       DateTime?     @map("fecha_hecho")
+  estadoSituacion  String        @map("estado_situacion")
+  fuerzaAsignada   String?       @map("fuerza_asignada")
+  reward           String?       @map("recompensa")
+  creadoEn         DateTime      @default(now()) @map("creado_en")
+  actualizadoEn    DateTime      @updatedAt @map("actualizado_en")
+  personas         PersonCase[]
+
+  @@map("cases")
+}
+
+model PersonCase {
+  personId String  @map("person_id") @db.Uuid
+  caseId   String  @map("case_id") @db.Uuid
+  rol      String? @map("rol")
+
+  person   Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  case     Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  offenses PersonCaseOffense[]
+
+  @@id([personId, caseId])
+  @@map("person_cases")
+}
+
+model PersonCaseOffense {
+  personId    String @map("person_id") @db.Uuid
+  caseId      String @map("case_id") @db.Uuid
+  delitoTexto String @map("delito_texto")
+
+  personCase PersonCase @relation(fields: [personId, caseId], references: [personId, caseId], onDelete: Cascade)
+
+  @@id([personId, caseId, delitoTexto])
+  @@map("person_case_offenses")
+}
