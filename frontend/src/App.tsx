@@ -7,6 +7,7 @@ import LoginPage from './pages/Login';
 import PersonDetailPage from './pages/PersonDetail';
 import SourcesPage from './pages/Sources';
 import CasesPage from './pages/Cases';
+import SettingsPage from './pages/Settings';
 
 const ProtectedLayout = () => (
   <ProtectedRoute>
@@ -55,6 +56,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <CasesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />

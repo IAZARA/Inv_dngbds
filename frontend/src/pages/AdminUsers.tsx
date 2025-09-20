@@ -56,6 +56,13 @@ const AdminUsersPage = () => {
     }
   });
 
+  const deleteUserMutation = useMutation<void, unknown, string>({
+    mutationFn: async (id: string) => {
+      await api.delete(`/users/${id}`);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] })
+  });
+
   const onSubmit = (data: UserForm) => createUserMutation.mutate(data);
 
   const handleToggleStatus = (user: User) => {
@@ -70,6 +77,19 @@ const AdminUsersPage = () => {
       return;
     }
     resetPasswordMutation.mutate({ id: user.id, newPassword });
+  };
+
+  const handleDeleteUser = (user: User) => {
+    const confirmed = window.confirm(
+      `¿Eliminar al usuario ${user.email}? Esta acción no se puede deshacer.`
+    );
+    if (!confirmed) return;
+    deleteUserMutation.mutate(user.id, {
+      onError: (error) => {
+        console.error(error);
+        alert('No se pudo eliminar el usuario. Intenta nuevamente.');
+      }
+    });
   };
 
   return (
@@ -170,11 +190,27 @@ const AdminUsersPage = () => {
                     >
                       Resetear clave
                     </button>
+                    <button
+                      className="btn ghost danger"
+                      onClick={() => handleDeleteUser(user)}
+                      disabled={
+                        deleteUserMutation.isPending && deleteUserMutation.variables === user.id
+                      }
+                    >
+                      {deleteUserMutation.isPending && deleteUserMutation.variables === user.id
+                        ? 'Eliminando...'
+                        : 'Eliminar'}
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        )}
+        {deleteUserMutation.isError && (
+          <p className="error" style={{ marginTop: '1rem' }}>
+            No se pudo eliminar el usuario seleccionado.
+          </p>
         )}
       </section>
     </div>

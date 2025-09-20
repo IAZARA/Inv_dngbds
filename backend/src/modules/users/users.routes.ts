@@ -4,6 +4,7 @@ import { requireAuth } from '../../middleware/require-auth';
 import { requireRole } from '../../middleware/require-role';
 import {
   createUserHandler,
+  deleteUserHandler,
   getCurrentUserHandler,
   listUsersHandler,
   resetPasswordHandler,
@@ -19,5 +20,6 @@ router.get('/', listUsersHandler);
 router.post('/', createUserHandler);
 router.patch('/:id', updateUserHandler);
 router.post('/:id/reset-password', resetPasswordHandler);
+router.delete('/:id', deleteUserHandler);
 
 export const usersRouter = router;

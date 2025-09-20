@@ -1,13 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
+import fs from 'node:fs/promises';
+import type { Express } from 'express';
+import { CaseMediaKind } from '@prisma/client';
 import { AppError } from '../../errors/AppError';
 import {
+  addCaseDocument,
+  addCasePhoto,
   createCase,
   deleteCase,
   getCaseById,
   listCases,
-  updateCase
+  removeCaseMedia,
+  updateCase,
+  updateCaseMediaDescription
 } from './cases.service';
-import { createCaseSchema, updateCaseSchema } from './cases.schemas';
+import { createCaseSchema, mediaDescriptionSchema, updateCaseSchema } from './cases.schemas';
 
 export const listCasesHandler = async (_req: Request, res: Response, next: NextFunction) => {
   try {
@@ -40,9 +47,22 @@ export const createCaseHandler = async (req: Request, res: Response, next: NextF
 export const updateCaseHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = updateCaseSchema.parse(req.body);
-    const hasCaseFields = ['numeroCausa', 'fechaHecho', 'estadoSituacion', 'fuerzaAsignada', 'reward'].some(
-      (key) => payload[key as keyof typeof payload] !== undefined
-    );
+    const caseFieldKeys = [
+      'numeroCausa',
+      'caratula',
+      'juzgadoInterventor',
+      'secretaria',
+      'fiscalia',
+      'jurisdiccion',
+      'delito',
+      'fechaHecho',
+      'estadoRequerimiento',
+      'fuerzaAsignada',
+      'recompensa',
+      'rewardAmount'
+    ] as const;
+
+    const hasCaseFields = caseFieldKeys.some((key) => payload[key] !== undefined);
     const hasPersonFields = payload.persona ? Object.keys(payload.persona).length > 0 : false;
 
     if (!hasCaseFields && !hasPersonFields) {
@@ -58,6 +78,105 @@ export const updateCaseHandler = async (req: Request, res: Response, next: NextF
 export const deleteCaseHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await deleteCase(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+const cleanupUploadedFile = async (file?: Express.Multer.File | null) => {
+  if (!file?.path) return;
+  try {
+    await fs.unlink(file.path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+};
+
+export const uploadCasePhotoHandler = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.file) {
+    next(new AppError('Archivo requerido', 400, true));
+    return;
+  }
+
+  try {
+    const description = typeof req.body?.description === 'string' ? req.body.description : undefined;
+    const photo = await addCasePhoto(req.params.id, req.file, description);
+    res.status(201).json({ photo });
+  } catch (error) {
+    await cleanupUploadedFile(req.file).catch(() => undefined);
+    next(error);
+  }
+};
+
+export const uploadCaseDocumentHandler = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.file) {
+    next(new AppError('Archivo requerido', 400, true));
+    return;
+  }
+
+  try {
+    const description = typeof req.body?.description === 'string' ? req.body.description : undefined;
+    const document = await addCaseDocument(req.params.id, req.file, description);
+    res.status(201).json({ document });
+  } catch (error) {
+    await cleanupUploadedFile(req.file).catch(() => undefined);
+    next(error);
+  }
+};
+
+export const updateCasePhotoDescriptionHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { description } = mediaDescriptionSchema.parse(req.body);
+    const updated = await updateCaseMediaDescription(
+      req.params.caseId,
+      req.params.photoId,
+      description,
+      CaseMediaKind.PHOTO
+    );
+    res.json({ photo: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateCaseDocumentDescriptionHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { description } = mediaDescriptionSchema.parse(req.body);
+    const updated = await updateCaseMediaDescription(
+      req.params.caseId,
+      req.params.documentId,
+      description,
+      CaseMediaKind.DOCUMENT
+    );
+    res.json({ document: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteCasePhotoHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await removeCaseMedia(req.params.caseId, req.params.photoId, CaseMediaKind.PHOTO);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteCaseDocumentHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await removeCaseMedia(req.params.caseId, req.params.documentId, CaseMediaKind.DOCUMENT);
     res.status(204).send();
   } catch (error) {
     next(error);

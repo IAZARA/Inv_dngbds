@@ -1,4 +1,15 @@
 export type UserRole = 'ADMIN' | 'OPERATOR' | 'CONSULTANT';
+export type Sex = 'MASCULINO' | 'FEMENINO' | 'OTRO';
+export type DocumentType = 'DNI' | 'PASAPORTE' | 'CEDULA_IDENTIDAD' | 'OTRO';
+export type Jurisdiccion = 'FEDERAL' | 'PROVINCIAL' | 'SIN_DATO';
+export type EstadoRequerimiento = 'CAPTURA_VIGENTE' | 'SIN_EFECTO' | 'DETENIDO';
+export type Recompensa = 'SI' | 'NO' | 'SIN_DATO';
+export type CaseMediaKind = 'PHOTO' | 'DOCUMENT';
+
+export interface CaseAdditionalInfoEntry {
+  label: string;
+  value: string;
+}
 
 export interface User {
   id: string;
@@ -64,32 +75,69 @@ export interface Source {
   updatedAt: string;
 }
 
-export interface CasePersonAddress {
+export interface CaseMediaItem {
   id: string;
-  addressText: string;
-  principal: boolean;
+  kind: CaseMediaKind;
+  description?: string | null;
+  url: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+}
+
+export interface CaseContactValueEntry {
+  value: string;
+}
+
+export interface CaseSocialNetworkEntry {
+  network: string;
+  handle: string;
 }
 
 export interface CasePerson {
   id: string;
   firstName: string;
   lastName: string;
+  sex: Sex | null;
   identityNumber?: string | null;
+  documentType?: DocumentType | null;
+  documentName?: string | null;
   birthdate?: string | null;
+  age?: number | null;
+  email?: string | null;
+  phone?: string | null;
+  emails?: CaseContactValueEntry[];
+  phones?: CaseContactValueEntry[];
+  socialNetworks?: CaseSocialNetworkEntry[];
   notes?: string | null;
   nationality: 'ARGENTINA' | 'OTRO';
   otherNationality?: string | null;
-  addresses: CasePersonAddress[];
+  street?: string | null;
+  streetNumber?: string | null;
+  province?: string | null;
+  locality?: string | null;
+  reference?: string | null;
 }
 
 export interface CaseRecord {
   id: string;
   numeroCausa?: string | null;
+  caratula?: string | null;
+  juzgadoInterventor?: string | null;
+  secretaria?: string | null;
+  fiscalia?: string | null;
+  jurisdiccion: Jurisdiccion;
+  delito?: string | null;
   fechaHecho?: string | null;
-  estadoSituacion: string;
+  estadoRequerimiento: EstadoRequerimiento;
   fuerzaAsignada?: string | null;
-  reward?: string | null;
+  recompensa: Recompensa;
+  rewardAmount?: string | null;
   creadoEn: string;
   actualizadoEn: string;
+  additionalInfo: CaseAdditionalInfoEntry[];
   persona: CasePerson | null;
+  photos: CaseMediaItem[];
+  documents: CaseMediaItem[];
 }

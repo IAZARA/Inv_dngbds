@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 enum UserRole {
@@ -18,34 +19,83 @@ enum PersonNationality {
   OTRO
 }
 
+enum Sex {
+  MASCULINO
+  FEMENINO
+  OTRO
+}
+
+enum DocumentType {
+  DNI
+  PASAPORTE
+  CEDULA_IDENTIDAD
+  OTRO
+}
+
+enum Jurisdiccion {
+  FEDERAL
+  PROVINCIAL
+  SIN_DATO
+}
+
+enum EstadoRequerimiento {
+  CAPTURA_VIGENTE
+  SIN_EFECTO
+  DETENIDO
+}
+
+enum Recompensa {
+  SI
+  NO
+  SIN_DATO
+}
+
+enum CaseMediaKind {
+  PHOTO
+  DOCUMENT
+}
+
 model User {
-  id            String          @id @default(uuid()) @db.Uuid
+  id            String         @id @default(uuid()) @db.Uuid
   firstName     String
   lastName      String
-  email         String          @unique
+  email         String         @unique
   passwordHash  String
-  role          UserRole        @default(OPERATOR)
-  isActive      Boolean         @default(true)
+  role          UserRole       @default(OPERATOR)
+  isActive      Boolean        @default(true)
   lastLoginAt   DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  collectedData SourceRecord[]  @relation("SourceRecordCollectedBy")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  collectedData SourceRecord[] @relation("SourceRecordCollectedBy")
 }
 
 model Person {
-  id             String           @id @default(uuid()) @db.Uuid
-  identityNumber String?          @unique
-  firstName      String?
-  lastName       String?
-  birthdate      DateTime?
-  notes          String?
-  nationality    PersonNationality @default(ARGENTINA)
+  id               String            @id @default(uuid()) @db.Uuid
+  identityNumber   String?           @unique
+  firstName        String?
+  lastName         String?
+  sex              Sex?
+  birthdate        DateTime?
+  documentType     DocumentType?
+  documentName     String?
+  email            String?
+  phone            String?
+  notes            String?
+  nationality      PersonNationality @default(ARGENTINA)
   otherNationality String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  records        SourceRecord[]
-  addresses      PersonAddress[]
-  cases          PersonCase[]
+  street           String?
+  streetNumber     String?
+  province         String?
+  locality         String?
+  reference        String?
+  emails           Json?             @map("emails")
+  phones           Json?             @map("telefonos")
+  socialNetworks   Json?             @map("redes_sociales")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  records          SourceRecord[]
+  addresses        PersonAddress[]
+  cases            PersonCase[]
 }
 
 model Source {
@@ -59,27 +109,27 @@ model Source {
 }
 
 model SourceRecord {
-  id             String    @id @default(uuid()) @db.Uuid
-  personId       String    @db.Uuid
-  sourceId       String    @db.Uuid
-  collectedById  String?   @db.Uuid
-  collectedAt    DateTime  @default(now())
-  rawPayload     Json?
-  summary        String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id            String   @id @default(uuid()) @db.Uuid
+  personId      String   @db.Uuid
+  sourceId      String   @db.Uuid
+  collectedById String?  @db.Uuid
+  collectedAt   DateTime @default(now())
+  rawPayload    Json?
+  summary       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  person         Person    @relation(fields: [personId], references: [id])
-  source         Source    @relation(fields: [sourceId], references: [id])
-  collectedBy    User?     @relation("SourceRecordCollectedBy", fields: [collectedById], references: [id])
+  person      Person @relation(fields: [personId], references: [id])
+  source      Source @relation(fields: [sourceId], references: [id])
+  collectedBy User?  @relation("SourceRecordCollectedBy", fields: [collectedById], references: [id])
 
   @@index([personId])
   @@index([sourceId])
 }
 
 model Address {
-  id          String           @id @default(uuid()) @map("address_id") @db.Uuid
-  addressText String           @map("address_text")
+  id          String          @id @default(uuid()) @map("address_id") @db.Uuid
+  addressText String          @map("address_text")
   persons     PersonAddress[]
 
   @@map("addresses")
@@ -100,18 +150,44 @@ model PersonAddress {
 }
 
 model Case {
-  id               String        @id @default(uuid()) @map("case_id") @db.Uuid
-  numeroExpediente String?       @map("numero_expediente")
-  numeroCausa      String?       @map("numero_causa")
-  fechaHecho       DateTime?     @map("fecha_hecho")
-  estadoSituacion  String        @map("estado_situacion")
-  fuerzaAsignada   String?       @map("fuerza_asignada")
-  reward           String?       @map("recompensa")
-  creadoEn         DateTime      @default(now()) @map("creado_en")
-  actualizadoEn    DateTime      @updatedAt @map("actualizado_en")
-  personas         PersonCase[]
+  id                  String              @id @default(uuid()) @map("case_id") @db.Uuid
+  numeroExpediente    String?             @map("numero_expediente")
+  numeroCausa         String?             @map("numero_causa")
+  fechaHecho          DateTime?           @map("fecha_hecho")
+  estadoRequerimiento EstadoRequerimiento @map("estado_situacion")
+  fuerzaAsignada      String?             @map("fuerza_asignada")
+  caratula            String?             @map("caratula")
+  juzgadoInterventor  String?             @map("juzgado_interventor")
+  secretaria          String?             @map("secretaria")
+  fiscalia            String?             @map("fiscalia")
+  jurisdiccion        Jurisdiccion        @default(SIN_DATO) @map("jurisdiccion")
+  delito              String?             @map("delito")
+  recompensa          Recompensa          @default(SIN_DATO) @map("recompensa")
+  rewardAmount        Decimal?            @map("monto_recompensa")
+  additionalInfo      Json?               @map("informacion_complementaria")
+  creadoEn            DateTime            @default(now()) @map("creado_en")
+  actualizadoEn       DateTime            @updatedAt @map("actualizado_en")
+  personas            PersonCase[]
+  media               CaseMedia[]
 
   @@map("cases")
+}
+
+model CaseMedia {
+  id           String        @id @default(uuid()) @db.Uuid
+  caseId       String        @db.Uuid
+  kind         CaseMediaKind
+  filePath     String
+  originalName String
+  mimeType     String
+  size         Int
+  description  String?
+  uploadedAt   DateTime      @default(now())
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+  @@map("case_media")
 }
 
 model PersonCase {
@@ -119,8 +195,8 @@ model PersonCase {
   caseId   String  @map("case_id") @db.Uuid
   rol      String? @map("rol")
 
-  person   Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
-  case     Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  person   Person              @relation(fields: [personId], references: [id], onDelete: Cascade)
+  case     Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
   offenses PersonCaseOffense[]
 
   @@id([personId, caseId])

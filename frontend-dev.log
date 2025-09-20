@@ -9,3 +9,79 @@
   ➜  Network: use --host to expose
 4:51:38 PM [vite] (client) hmr update /src/index.css
 4:51:47 PM [vite] (client) hmr update /src/components/DashboardLayout.tsx
+4:54:47 PM [vite] (client) hmr update /src/components/DashboardLayout.tsx
+4:54:47 PM [vite] Internal server error: Failed to resolve import "react-icons/fa" from "src/components/DashboardLayout.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/macbook/Documents/InvestigacionDNGBDS/frontend/src/components/DashboardLayout.tsx:4:29
+  4  |  import { useAuth } from "../context/AuthContext";
+  5  |  import logo from "../assets/logo_ministerio.png";
+  6  |  import { FaSignOutAlt } from "react-icons/fa";
+     |                                ^
+  7  |  const DashboardLayout = () => {
+  8  |    _s();
+      at TransformPluginContext._formatLog (file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:31185:43)
+      at TransformPluginContext.error (file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:31182:14)
+      at normalizeUrl (file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:29665:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:29723:32
+      at async Promise.all (index 4)
+      at async TransformPluginContext.transform (file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:29691:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:30984:14)
+      at async loadAndTransform (file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:26116:26)
+      at async viteTransformMiddleware (file:///Users/macbook/Documents/InvestigacionDNGBDS/frontend/node_modules/vite/dist/node/chunks/dep-D5b0Zz6C.js:27187:20)
+4:55:18 PM [vite] (client) hmr update /src/index.css
+4:55:22 PM [vite] (client) ✨ new dependencies optimized: react-icons/fa
+4:55:22 PM [vite] (client) ✨ optimized dependencies changed. reloading
+4:56:20 PM [vite] (client) hmr update /src/index.css
+4:57:03 PM [vite] (client) hmr update /src/index.css
+4:57:58 PM [vite] (client) hmr update /src/components/DashboardLayout.tsx
+5:09:44 PM [vite] (client) hmr update /src/components/DashboardLayout.tsx
+5:09:55 PM [vite] (client) hmr update /src/index.css
+5:10:09 PM [vite] (client) hmr update /src/index.css
+5:10:43 PM [vite] (client) hmr update /src/index.css
+5:13:02 PM [vite] (client) hmr update /src/components/DashboardLayout.tsx
+5:13:13 PM [vite] (client) hmr update /src/index.css
+5:13:44 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:14:03 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:14:33 PM [vite] (client) hmr update /src/components/DashboardLayout.tsx
+5:14:47 PM [vite] (client) hmr update /src/index.css
+5:16:34 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:16:40 PM [vite] (client) hmr update /src/index.css
+5:17:44 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:18:35 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:18:41 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:18:54 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:19:58 PM [vite] (client) hmr update /src/pages/Login.tsx
+5:20:16 PM [vite] (client) hmr update /src/index.css
+5:22:05 PM [vite] (client) hmr update /src/pages/Login.tsx
+5:22:29 PM [vite] (client) hmr update /src/index.css
+5:27:13 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:27:36 PM [vite] (client) hmr update /src/index.css
+5:27:48 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:28:01 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:28:15 PM [vite] (client) hmr update /src/index.css
+5:28:43 PM [vite] (client) hmr update /src/index.css
+5:28:54 PM [vite] (client) hmr update /src/index.css
+5:29:08 PM [vite] (client) hmr update /src/index.css
+5:29:58 PM [vite] (client) hmr update /src/index.css
+5:33:15 PM [vite] (client) hmr update /src/index.css
+5:33:36 PM [vite] (client) hmr update /src/index.css
+5:36:54 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:37:13 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:38:42 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:39:47 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:39:57 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:40:05 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:40:39 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:41:03 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:41:05 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:41:12 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:41:23 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:41:33 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:41:35 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:42:03 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:42:18 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:42:36 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:42:40 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:43:58 PM [vite] (client) hmr update /src/pages/Cases.tsx
+5:44:31 PM [vite] (client) hmr update /src/pages/Cases.tsx

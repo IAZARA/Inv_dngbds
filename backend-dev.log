@@ -5,3 +5,499 @@
 [INFO] 16:03:30 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.2)
 [dotenv@17.2.2] injecting env (8) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
 Servidor escuchando en puerto 4000
+[INFO] 17:10:22 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts has been modified
+[dotenv@17.2.2] injecting env (8) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+ReferenceError: fuerzaAsignadaOptions is not defined
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts:72:26)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/ts-node-dev/lib/hook.js:63:13)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+[ERROR] 17:10:22 ReferenceError: fuerzaAsignadaOptions is not defined
+[INFO] 17:11:06 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+[dotenv@17.2.2] injecting env (8) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+ReferenceError: fuerzaAsignadaOptions is not defined
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts:72:26)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/ts-node-dev/lib/hook.js:63:13)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+[ERROR] 17:11:07 ReferenceError: fuerzaAsignadaOptions is not defined
+[INFO] 17:11:22 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+[dotenv@17.2.2] injecting env (8) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+ReferenceError: fuerzaAsignadaOptions is not defined
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts:72:26)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/ts-node-dev/lib/hook.js:63:13)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+[ERROR] 17:11:22 ReferenceError: fuerzaAsignadaOptions is not defined
+[INFO] 17:11:29 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.controller.ts has been modified
+[dotenv@17.2.2] injecting env (8) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+ReferenceError: fuerzaAsignadaOptions is not defined
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts:72:26)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/ts-node-dev/lib/hook.js:63:13)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+[ERROR] 17:11:29 ReferenceError: fuerzaAsignadaOptions is not defined
+[INFO] 17:14:50 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts has been modified
+[dotenv@17.2.2] injecting env (8) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Servidor escuchando en puerto 4000
+[INFO] 17:16:15 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts has been modified
+[dotenv@17.2.2] injecting env (8) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+Servidor escuchando en puerto 4000
+[INFO] 17:17:07 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+[dotenv@17.2.2] injecting env (8) from .env -- tip: ⚙️  override existing env vars with { override: true }
+Servidor escuchando en puerto 4000
+[INFO] 17:36:34 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/app.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:36:35 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:36:41 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/app.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:36:41 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:37:14 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:37:15 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:37:38 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:37:38 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:37:52 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:37:52 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:38:32 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.controller.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:38:32 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:38:40 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.controller.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:38:41 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:38:54 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.routes.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:38:55 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:44:53 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:44:53 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:45:19 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/middleware/error-handler.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 17:45:19 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 17:45:51 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/middleware/uploads.ts has been modified
+Servidor escuchando en puerto 4000
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 83.223 ms - 72[0m
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 5.468 ms - 72[0m
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 7.243 ms - 72[0m
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 5.180 ms - 72[0m
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 11.373 ms - 72[0m
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 8.100 ms - 72[0m
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 47.178 ms - 72[0m
+PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:34
+
+  6 
+  7 export const login = async ({ email, password }: LoginInput) => {
+  8   const normalizedEmail = email.trim().toLowerCase();
+→ 9   const user = await prisma.user.findUnique(
+Can't reach database server at `db:5432`
+
+Please make sure your database server is running at `db:5432`.
+    at $n.handleRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.service.ts:9:16)
+    at loginHandler (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/auth/auth.controller.ts:8:20) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+[0mPOST /api/auth/login [31m500[0m 9.792 ms - 72[0m
+Cerrando servidor...
+[INFO] 18:44:10 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/users/users.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 18:44:10 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 18:44:17 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/users/users.controller.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 18:44:17 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 18:44:25 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/users/users.routes.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 18:44:25 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 18:59:54 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 18:59:54 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 19:00:06 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 19:00:07 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 19:12:16 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.schemas.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 19:12:17 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 19:14:13 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 19:14:14 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 19:14:29 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 19:14:29 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 19:15:12 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 19:15:12 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 19:15:49 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 19:15:49 Error: listen EADDRINUSE: address already in use :::4000

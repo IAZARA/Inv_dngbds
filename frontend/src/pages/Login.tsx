@@ -36,20 +36,38 @@ const LoginPage = () => {
 
   return (
     <div className="login-page">
-      <form className="card" onSubmit={handleSubmit(onSubmit)}>
-        <h2>Ingreso al sistema</h2>
-        <label>
-          Correo electrónico
-          <input type="email" {...register('email')} placeholder="usuario@correo.com" />
+      <form className="card login-card" onSubmit={handleSubmit(onSubmit)}>
+        <div className="form-group">
+          <label htmlFor="email">Correo electrónico</label>
+          <div className="input-wrapper">
+            <input
+              id="email"
+              type="email"
+              {...register('email')}
+              placeholder="usuario@correo.com"
+              className={errors.email ? 'input-error' : ''}
+            />
+          </div>
           {errors.email && <span className="error">{errors.email.message}</span>}
-        </label>
-        <label>
-          Contraseña
-          <input type="password" {...register('password')} placeholder="********" />
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="password">Contraseña</label>
+          <div className="input-wrapper">
+            <input
+              id="password"
+              type="password"
+              {...register('password')}
+              placeholder="********"
+              className={errors.password ? 'input-error' : ''}
+            />
+          </div>
           {errors.password && <span className="error">{errors.password.message}</span>}
-        </label>
+        </div>
+        
         {serverError && <div className="error-box">{serverError}</div>}
-        <button className="btn primary" type="submit" disabled={isSubmitting}>
+        
+        <button className="btn primary login-btn" type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Ingresando...' : 'Ingresar'}
         </button>
       </form>

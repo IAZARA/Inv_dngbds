@@ -10,6 +10,7 @@ type AuthContextValue = {
   initializing: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => void;
+  changePassword: (payload: { currentPassword: string; newPassword: string }) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -79,9 +80,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   }, []);
 
+  const changePassword = useCallback(
+    async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
+      await api.post('/auth/change-password', { currentPassword, newPassword });
+    },
+    []
+  );
+
   const value = useMemo(
-    () => ({ user, token, initializing, login, logout }),
-    [initializing, login, logout, token, user]
+    () => ({ user, token, initializing, login, logout, changePassword }),
+    [changePassword, initializing, login, logout, token, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

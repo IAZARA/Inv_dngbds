@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/error-handler';
 import { apiRouter } from './routes';
+import { uploadsStaticPath } from './middleware/uploads';
 
 export const createApp = () => {
   const app = express();
@@ -12,6 +13,7 @@ export const createApp = () => {
   app.use(cors());
   app.use(express.json({ limit: '2mb' }));
   app.use(morgan('dev'));
+  app.use('/uploads', express.static(uploadsStaticPath));
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });

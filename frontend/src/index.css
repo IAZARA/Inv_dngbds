@@ -92,7 +92,7 @@ button {
 }
 
 .side-nav {
-  width: 180px;
+  width: 183px;
   padding: 1rem;
   background-color: #111827;
   display: flex;
@@ -112,7 +112,7 @@ button {
 }
 
 .side-nav.expanded {
-  width: 180px;
+  width: 183px;
   padding: 1rem;
 }
 

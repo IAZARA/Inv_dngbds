@@ -87,3 +87,17 @@ export const resetPassword = async (id: string, payload: ResetPasswordInput) => 
     throw new AppError('Usuario no encontrado', 404, true);
   }
 };
+
+export const deleteUser = async (id: string, currentUserId: string) => {
+  if (id === currentUserId) {
+    throw new AppError('No puedes eliminar tu propia cuenta', 400, true);
+  }
+
+  try {
+    await prisma.user.delete({
+      where: { id }
+    });
+  } catch (error) {
+    throw new AppError('Usuario no encontrado', 404, true);
+  }
+};
