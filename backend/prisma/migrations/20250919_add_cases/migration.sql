@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS "cases" (
   "fecha_hecho" DATE,
   "estado_situacion" TEXT NOT NULL,
   "fuerza_asignada" TEXT,
+  "informacion_complementaria" JSONB,
   "creado_en" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   "actualizado_en" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
