@@ -251,25 +251,27 @@ const CasesPage = () => {
             Los casos se encuentran ordenados por defecto según la prioridad establecida por el Comando Unificado Federal de Recaptura de Evadidos.
           </p>
         </div>
-        <div className="case-toolbar">
-          <button className="btn ghost" type="button" onClick={toggleSelectMode} disabled={!canEdit}>
-            {selectMode ? 'Cancelar selección' : 'Exportar a Excel'}
-          </button>
-          {selectMode ? (
-            <button
-              className="btn primary"
-              type="button"
-              onClick={handleExportExcel}
-              disabled={selectedIds.length === 0 || exporting}
-            >
-              {exporting ? 'Descargando…' : `Descargar (${selectedIds.length})`}
+        {canEdit && (
+          <div className="case-toolbar">
+            <button className="btn ghost" type="button" onClick={toggleSelectMode}>
+              {selectMode ? 'Cancelar selección' : 'Exportar a Excel'}
             </button>
-          ) : (
-            <button className="btn primary" type="button" onClick={handleStartCreate} disabled={!canEdit}>
-              + Nuevo caso
-            </button>
-          )}
-        </div>
+            {selectMode ? (
+              <button
+                className="btn primary"
+                type="button"
+                onClick={handleExportExcel}
+                disabled={selectedIds.length === 0 || exporting}
+              >
+                {exporting ? 'Descargando…' : `Descargar (${selectedIds.length})`}
+              </button>
+            ) : (
+              <button className="btn primary" type="button" onClick={handleStartCreate}>
+                + Nuevo caso
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {showForm ? (

@@ -240,22 +240,26 @@ const CasesList = ({
                 >
                   Ver detalles
                 </button>
-                <button
-                  className="btn ghost"
-                  type="button"
-                  onClick={() => handleEdit(item)}
-                  disabled={!canEdit || selectMode}
-                >
-                  Editar
-                </button>
-                <button
-                  className="btn ghost"
-                  type="button"
-                  onClick={() => handleDelete(item)}
-                  disabled={!canDelete || isDeleting || selectMode}
-                >
-                  {isDeleting ? 'Eliminando…' : 'Eliminar'}
-                </button>
+                {canEdit && (
+                  <button
+                    className="btn ghost"
+                    type="button"
+                    onClick={() => handleEdit(item)}
+                    disabled={selectMode}
+                  >
+                    Editar
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    className="btn ghost"
+                    type="button"
+                    onClick={() => handleDelete(item)}
+                    disabled={isDeleting || selectMode}
+                  >
+                    {isDeleting ? 'Eliminando…' : 'Eliminar'}
+                  </button>
+                )}
               </div>
               <div className="case-row__actions case-row__actions--mobile">
                 <button
@@ -279,22 +283,26 @@ const CasesList = ({
                   >
                     Ver detalles
                   </button>
-                  <button
-                    className="btn ghost"
-                    type="button"
-                    onClick={() => handleEdit(item)}
-                    disabled={!canEdit || selectMode}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    className="btn ghost"
-                    type="button"
-                    onClick={() => handleDelete(item)}
-                    disabled={!canDelete || isDeleting || selectMode}
-                  >
-                    {isDeleting ? 'Eliminando…' : 'Eliminar'}
-                  </button>
+                  {canEdit && (
+                    <button
+                      className="btn ghost"
+                      type="button"
+                      onClick={() => handleEdit(item)}
+                      disabled={selectMode}
+                    >
+                      Editar
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      className="btn ghost"
+                      type="button"
+                      onClick={() => handleDelete(item)}
+                      disabled={isDeleting || selectMode}
+                    >
+                      {isDeleting ? 'Eliminando…' : 'Eliminar'}
+                    </button>
+                  )}
                 </div>
               </div>
             </article>
