@@ -7,8 +7,11 @@ export const blankToUndefined = (value?: string | null) => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
+type ContactValueEntry = { value?: string | null };
+type SocialNetworkEntry = { network?: string | null; handle?: string | null };
+
 export const toValueEntries = (
-  entries?: Array<{ value: string }> | null,
+  entries?: Array<ContactValueEntry | null> | null,
   fallback?: string | null
 ): Array<{ value: string }> => {
   const list: Array<{ value: string }> = [];
@@ -38,7 +41,7 @@ export const toValueEntries = (
 };
 
 export const toSocialEntries = (
-  entries?: Array<{ network: string; handle: string }> | null
+  entries?: Array<SocialNetworkEntry | null> | null
 ): Array<{ network: string; handle: string }> => {
   const list: Array<{ network: string; handle: string }> = [];
   (entries ?? []).forEach((entry) => {
@@ -102,27 +105,27 @@ const normalizeAdditionalInfo = (entries: CaseFormValues['additionalInfo']) => {
     .filter((entry) => entry.label.length > 0 && entry.value.length > 0);
 };
 
-const normalizeEmailEntries = (entries: Array<{ value: string }>) => {
+const normalizeEmailEntries = (entries: Array<ContactValueEntry>) => {
   return entries
-    .map((entry) => entry.value.trim().toLowerCase().slice(0, 255))
+    .map((entry) => (entry.value ?? '').trim().toLowerCase().slice(0, 255))
     .filter((value) => value.length > 0)
     .map((value) => ({ value }));
 };
 
-const normalizePhoneEntries = (entries: Array<{ value: string }>) => {
+const normalizePhoneEntries = (entries: Array<ContactValueEntry>) => {
   return entries
-    .map((entry) => entry.value.trim().slice(0, 50))
+    .map((entry) => (entry.value ?? '').trim().slice(0, 50))
     .filter((value) => value.length > 0)
     .map((value) => ({ value }));
 };
 
 const normalizeSocialNetworkEntries = (
-  entries: Array<{ network: string; handle: string }>
+  entries: Array<SocialNetworkEntry>
 ) => {
   return entries
     .map((entry) => ({
-      network: entry.network.trim().slice(0, 60),
-      handle: entry.handle.trim().slice(0, 120)
+      network: (entry.network ?? '').trim().slice(0, 60),
+      handle: (entry.handle ?? '').trim().slice(0, 120)
     }))
     .filter((entry) => entry.network.length > 0 && entry.handle.length > 0);
 };
