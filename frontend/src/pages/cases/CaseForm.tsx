@@ -1,12 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ChangeEvent, FormEvent, ReactNode } from 'react';
+import type {
+  ChangeEvent,
+  FormEvent,
+  KeyboardEvent,
+  MouseEvent,
+  ReactNode
+} from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import type { Resolver } from 'react-hook-form';
 
 import { FaStar } from 'react-icons/fa';
-import { api } from '../../lib/api';
+import { api, resolveAssetUrl } from '../../lib/api';
 import type { CaseMediaItem, CaseRecord } from '../../types';
 import {
   defaultDocumentDescription,
@@ -22,7 +28,7 @@ import {
 } from './constants';
 import type { CaseFormValues } from './formSchema';
 import { caseFormSchema, defaultValues } from './formSchema';
-import { computeAge, formatOptionText, mapCaseToForm } from './helpers';
+import { computeAge, formatOptionText, mapCaseToForm, translateFuerza } from './helpers';
 import type { TabId } from './types';
 
 type CaseFormProps = {
@@ -145,6 +151,9 @@ const CaseForm = ({
     handleSubmit,
     reset,
     control,
+    setValue,
+    getValues,
+    clearErrors,
     formState: { errors, isSubmitting }
   } = useForm<CaseFormValues>({
     resolver,
@@ -154,6 +163,7 @@ const CaseForm = ({
   const birthdateValue = useWatch({ control, name: 'persona.birthdate' });
   const nationalityValue = useWatch({ control, name: 'persona.nationality' });
   const recompensaValue = useWatch({ control, name: 'recompensa' });
+  const rewardAmountStatus = useWatch({ control, name: 'rewardAmountStatus' });
 
   const {
     fields: emailFields,
@@ -212,6 +222,24 @@ const CaseForm = ({
     if (photoInputRef.current) photoInputRef.current.value = '';
     if (documentInputRef.current) documentInputRef.current.value = '';
   }, [editingCase, reset]);
+
+  useEffect(() => {
+    register('rewardAmountStatus');
+  }, [register]);
+
+  useEffect(() => {
+    if (recompensaValue !== 'SI') {
+      if (rewardAmountStatus !== 'KNOWN') {
+        setValue('rewardAmountStatus', 'KNOWN', { shouldDirty: true, shouldValidate: true });
+      }
+      if (getValues('rewardAmount')) {
+        setValue('rewardAmount', '', { shouldDirty: true, shouldValidate: true });
+      } else {
+        setValue('rewardAmount', '', { shouldDirty: false, shouldValidate: true });
+      }
+      clearErrors('rewardAmount');
+    }
+  }, [recompensaValue, rewardAmountStatus, setValue, getValues, clearErrors]);
 
   useEffect(() => {
     setPhotoDescriptions((current) => {
@@ -539,8 +567,13 @@ const CaseForm = ({
     setDocumentFormFile(file);
   };
 
-  const handlePhotoUpload = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handlePhotoUpload = (
+    event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>
+  ) => {
+    event?.preventDefault();
+    if (!canEdit || photoUploadMutation.isPending) {
+      return;
+    }
     if (!editingCase?.id || !photoFormFile) {
       return;
     }
@@ -551,8 +584,20 @@ const CaseForm = ({
     });
   };
 
-  const handleDocumentUpload = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handlePhotoFormKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handlePhotoUpload();
+    }
+  };
+
+  const handleDocumentUpload = (
+    event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>
+  ) => {
+    event?.preventDefault();
+    if (!canEdit || documentUploadMutation.isPending) {
+      return;
+    }
     if (!editingCase?.id || !documentFormFile) {
       return;
     }
@@ -561,6 +606,13 @@ const CaseForm = ({
       file: documentFormFile,
       description: documentFormDescription
     });
+  };
+
+  const handleDocumentFormKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleDocumentUpload();
+    }
   };
 
   const handlePhotoDescriptionInput = (photoId: string, value: string) => {
@@ -928,7 +980,7 @@ const CaseForm = ({
               <select {...register('fuerzaAsignada')} disabled={!canEdit}>
                 {fuerzaIntervinienteOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {translateFuerza(option)}
                   </option>
                 ))}
               </select>
@@ -946,11 +998,36 @@ const CaseForm = ({
               {errors.recompensa && <span className="error">{errors.recompensa.message}</span>}
             </label>
             {recompensaValue === 'SI' && (
-              <label>
-                Monto de recompensa (ARS)
-                <input type="text" {...register('rewardAmount')} disabled={!canEdit} />
-                {errors.rewardAmount && <span className="error">{errors.rewardAmount.message}</span>}
-              </label>
+              <div className="reward-section">
+                <label className="checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={rewardAmountStatus === 'UNKNOWN'}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                      const isUnknown = event.target.checked;
+                      setValue('rewardAmountStatus', isUnknown ? 'UNKNOWN' : 'KNOWN', {
+                        shouldDirty: true,
+                        shouldValidate: true
+                      });
+                      if (isUnknown) {
+                        setValue('rewardAmount', '', { shouldDirty: true, shouldValidate: true });
+                        clearErrors('rewardAmount');
+                      }
+                    }}
+                    disabled={!canEdit}
+                  />
+                  <span>Monto pendiente de confirmar</span>
+                </label>
+                {rewardAmountStatus === 'KNOWN' && (
+                  <label>
+                    Monto de recompensa (ARS)
+                    <input type="text" {...register('rewardAmount')} disabled={!canEdit} />
+                    {errors.rewardAmount && (
+                      <span className="error">{errors.rewardAmount.message}</span>
+                    )}
+                  </label>
+                )}
+              </div>
             )}
           </div>
         );
@@ -1034,7 +1111,7 @@ const CaseForm = ({
 
         return (
           <div className="stack" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <form className="form-grid" onSubmit={handlePhotoUpload}>
+            <div className="form-grid" role="group" aria-label="Formulario de carga de fotos">
               <label className="full">
                 Seleccionar archivo
                 <input
@@ -1051,24 +1128,26 @@ const CaseForm = ({
                   type="text"
                   value={photoFormDescription}
                   onChange={(event) => setPhotoFormDescription(event.target.value.slice(0, 200))}
+                  onKeyDown={handlePhotoFormKeyDown}
                   disabled={!canEdit || photoUploadMutation.isPending}
                 />
               </label>
               <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
                 <button
-                  type="submit"
+                  type="button"
                   className="btn primary"
                   disabled={!canEdit || !photoFormFile || photoUploadMutation.isPending}
+                  onClick={handlePhotoUpload}
                 >
                   {photoUploadMutation.isPending ? 'Subiendo…' : 'Subir foto'}
                 </button>
               </div>
-            </form>
+            </div>
 
             {photos.length === 0 ? (
               <p className="muted">No hay fotos adjuntas.</p>
             ) : (
-              <div className="records-list" style={{ gap: '1rem' }}>
+              <div className="records-list photo-grid">
                 {photos.map((photo) => {
                   const descriptionValue = photoDescriptions[photo.id] ?? '';
                   const isDeleting =
@@ -1079,7 +1158,7 @@ const CaseForm = ({
                         className={`case-photo-frame${photo.isPrimary ? ' is-primary' : ''}`}
                       >
                         <img
-                          src={photo.url}
+                          src={resolveAssetUrl(photo.url)}
                           alt={photo.description ?? 'Foto del caso'}
                         />
                         <button
@@ -1114,7 +1193,12 @@ const CaseForm = ({
                         Subida: {new Date(photo.uploadedAt).toLocaleString()}
                       </p>
                       <div className="form-actions" style={{ justifyContent: 'space-between' }}>
-                        <a className="btn ghost" href={photo.url} target="_blank" rel="noreferrer">
+                        <a
+                          className="btn ghost"
+                          href={resolveAssetUrl(photo.url)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           Ver
                         </a>
                         <button
@@ -1143,7 +1227,7 @@ const CaseForm = ({
 
         return (
           <div className="stack" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <form className="form-grid" onSubmit={handleDocumentUpload}>
+            <div className="form-grid" role="group" aria-label="Formulario de carga de documentos">
               <label className="full">
                 Seleccionar archivo
                 <input
@@ -1160,19 +1244,21 @@ const CaseForm = ({
                   type="text"
                   value={documentFormDescription}
                   onChange={(event) => setDocumentFormDescription(event.target.value.slice(0, 200))}
+                  onKeyDown={handleDocumentFormKeyDown}
                   disabled={!canEdit || documentUploadMutation.isPending}
                 />
               </label>
               <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
                 <button
-                  type="submit"
+                  type="button"
                   className="btn primary"
                   disabled={!canEdit || !documentFormFile || documentUploadMutation.isPending}
+                  onClick={handleDocumentUpload}
                 >
                   {documentUploadMutation.isPending ? 'Subiendo…' : 'Subir documento'}
                 </button>
               </div>
-            </form>
+            </div>
 
             {documents.length === 0 ? (
               <p className="muted">No hay documentos adjuntos.</p>
@@ -1206,7 +1292,12 @@ const CaseForm = ({
                         </label>
                       </div>
                       <div className="actions" style={{ gap: '0.5rem' }}>
-                        <a className="btn ghost" href={document.url} target="_blank" rel="noreferrer">
+                        <a
+                          className="btn ghost"
+                          href={resolveAssetUrl(document.url)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           Descargar
                         </a>
                         <button

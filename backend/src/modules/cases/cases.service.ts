@@ -1,6 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { PassThrough } from 'node:stream';
 import type { Express } from 'express';
+import PDFDocument from 'pdfkit';
+import ExcelJS from 'exceljs';
+import archiver from 'archiver';
 import { CaseMediaKind, Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../errors/AppError';
@@ -484,6 +488,491 @@ export const getCaseById = async (id: string) => {
     throw new AppError('Caso no encontrado', 404, true);
   }
   return serializeCase(caseData);
+};
+
+const translateEstadoLabel = (estado: string) => {
+  switch (estado) {
+    case 'CAPTURA_VIGENTE':
+      return 'Captura vigente';
+    case 'SIN_EFECTO':
+      return 'Sin efecto';
+    case 'DETENIDO':
+      return 'Detenido';
+    default:
+      return estado;
+  }
+};
+
+const formatEnum = (value: string) => value.replace(/_/g, ' ');
+
+const summarizeAddress = (persona: ReturnType<typeof serializeCase>['persona']) => {
+  if (!persona) return null;
+  const pieces: string[] = [];
+  if (persona.street || persona.streetNumber) {
+    pieces.push(`${persona.street ?? ''} ${persona.streetNumber ?? ''}`.trim());
+  }
+  if (persona.locality || persona.province) {
+    pieces.push([persona.locality, persona.province].filter(Boolean).join(', '));
+  }
+  if (persona.reference) {
+    pieces.push(`Ref.: ${persona.reference}`);
+  }
+  return pieces.length > 0 ? pieces.join(' · ') : null;
+};
+
+const removeDiacritics = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const sanitizeCaseBaseName = (value: string) => {
+  const normalized = removeDiacritics(value);
+  const sanitized = normalized.replace(/[^A-Za-z0-9\s]/g, ' ').trim().replace(/\s+/g, ' ');
+  return sanitized;
+};
+
+const buildCaseFileBaseName = (fullName?: string | null) => {
+  const sanitized = sanitizeCaseBaseName(fullName ?? '');
+  if (!sanitized) {
+    return 'LEGAJO SIN PERSONA';
+  }
+  return `LEGAJO ${sanitized.toUpperCase()}`;
+};
+
+const buildCasePdfFileName = (fullName?: string | null) => `${buildCaseFileBaseName(fullName)}.pdf`;
+const buildCaseZipFileName = (fullName?: string | null) => `${buildCaseFileBaseName(fullName)}.zip`;
+const buildCaseExcelFileName = (fullName?: string | null) => `${buildCaseFileBaseName(fullName)}.xlsx`;
+
+const MIME_EXTENSION_MAP: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+  'application/pdf': '.pdf',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'application/vnd.ms-excel': '.xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+  'text/plain': '.txt',
+  'application/rtf': '.rtf',
+  'application/vnd.oasis.opendocument.text': '.odt',
+  'application/vnd.oasis.opendocument.spreadsheet': '.ods'
+};
+
+export const generateCasePdf = async (id: string) => {
+  const caseData = await getCaseById(id);
+
+  const doc = new PDFDocument({ margin: 50, size: 'A4' });
+  const chunks: Buffer[] = [];
+
+  const fullName = [caseData.persona?.firstName, caseData.persona?.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+  const displayName = fullName || 'Sin persona asociada';
+  const fileName = buildCasePdfFileName(fullName);
+
+  // Encontrar la foto principal
+  const primaryPhoto = caseData.photos.find((photo) => photo.isPrimary) || caseData.photos[0] || null;
+
+  const bufferPromise = new Promise<Buffer>((resolve, reject) => {
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+  });
+
+  const { width, height } = doc.page;
+  const contentWidth = width - doc.page.margins.left - doc.page.margins.right;
+
+  // Marca de agua centrada
+  doc.save();
+  doc.font('Helvetica-Bold').fillColor('#ef4444').opacity(0.08);
+  doc.rotate(-45, { origin: [width / 2, height / 2] });
+  doc.fontSize(110).text('CONDIFENCIAL', -width / 2, height / 2 - 50, {
+    align: 'center',
+    width
+  });
+  doc.restore();
+  doc.opacity(1);
+
+  // Reset cursor so following content starts within the printable area
+  doc.x = doc.page.margins.left;
+  doc.y = doc.page.margins.top;
+
+  const drawDivider = () => {
+    doc.moveDown(0.6);
+    const y = doc.y;
+    doc.lineWidth(0.6).strokeColor('#d1d5db');
+    doc.moveTo(doc.page.margins.left, y).lineTo(width - doc.page.margins.right, y).stroke();
+    doc.moveDown(0.4);
+  };
+
+  const drawSection = (title: string, entries: Array<{ label: string; value?: string | null }>) => {
+    const items = entries.filter((entry) => {
+      if (entry.value === undefined || entry.value === null) return false;
+      return String(entry.value).trim().length > 0;
+    });
+    if (!items.length) return;
+
+    doc.moveDown(0.6);
+    doc.font('Helvetica-Bold').fontSize(13).fillColor('#1f2937').text(title.toUpperCase());
+    doc.moveDown(0.25);
+
+    items.forEach((item) => {
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(11)
+        .fillColor('#111827')
+        .text(`${item.label}:`, { continued: true });
+      doc
+        .font('Helvetica')
+        .fontSize(11)
+        .fillColor('#111827')
+        .text(String(item.value), {
+          width: contentWidth,
+          align: 'left'
+        });
+      doc.moveDown(0.1);
+    });
+  };
+
+  const drawListSection = (title: string, lines: string[]) => {
+    const valid = lines.filter((line) => line.trim().length > 0);
+    if (!valid.length) return;
+
+    doc.moveDown(0.6);
+    doc.font('Helvetica-Bold').fontSize(13).fillColor('#1f2937').text(title.toUpperCase());
+    doc.moveDown(0.25);
+    doc.font('Helvetica').fontSize(11).fillColor('#111827');
+    valid.forEach((line) => {
+      doc.text(`- ${line}`, {
+        width: contentWidth,
+        lineGap: 2,
+        paragraphGap: 4
+      });
+    });
+  };
+
+  const formatDate = (value?: string | null) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleDateString();
+  };
+
+  const rewardSummary = () => {
+    if (caseData.recompensa !== 'SI') {
+      return 'No';
+    }
+    if (caseData.rewardAmount) {
+      return caseData.rewardAmount;
+    }
+    return 'Monto no confirmado';
+  };
+
+  doc.font('Helvetica-Bold').fontSize(22).fillColor('#111827').text('Legajo del caso');
+  doc.moveDown(0.3);
+  doc.font('Helvetica').fontSize(16).fillColor('#2563eb').text(displayName);
+  doc.moveDown(0.4);
+
+  // Incluir foto principal si existe
+  if (primaryPhoto) {
+    try {
+      const photoPath = path.join(uploadsStaticPath, primaryPhoto.url.replace('/uploads/', ''));
+      const imageBuffer = await fs.readFile(photoPath);
+
+      // Calcular dimensiones para la imagen (max ancho de 200px, manteniendo proporción)
+      const maxImageWidth = 200;
+      const maxImageHeight = 250;
+
+      // Centrar la imagen horizontalmente
+      const imageX = (width - maxImageWidth) / 2;
+
+      doc.image(imageBuffer, imageX, doc.y, {
+        fit: [maxImageWidth, maxImageHeight],
+        align: 'center'
+      });
+
+      // Mover el cursor después de la imagen
+      doc.moveDown(12);
+
+      // Agregar descripción de la foto si existe
+      if (primaryPhoto.description) {
+        doc.font('Helvetica').fontSize(10).fillColor('#6b7280');
+        doc.text(primaryPhoto.description, {
+          width: contentWidth,
+          align: 'center'
+        });
+        doc.moveDown(0.5);
+      }
+    } catch (error) {
+      console.error('Error al incluir foto en PDF:', error);
+      // Continuar sin la imagen si hay error
+    }
+  }
+
+  drawDivider();
+
+  drawSection('Resumen del caso', [
+    { label: 'Estado', value: translateEstadoLabel(caseData.estadoRequerimiento) },
+    { label: 'Fuerza asignada', value: caseData.fuerzaAsignada ?? 'S/D' },
+    { label: 'Expediente', value: caseData.numeroCausa ?? '—' },
+    { label: 'Jurisdicción', value: formatEnum(caseData.jurisdiccion) }
+  ]);
+
+  if (caseData.persona) {
+    const persona = caseData.persona;
+    const phones = [persona.phone, ...(persona.phones ?? []).map((entry) => entry.value)]
+      .filter(Boolean)
+      .join(' · ');
+    const emails = [persona.email, ...(persona.emails ?? []).map((entry) => entry.value)]
+      .filter(Boolean)
+      .join(' · ');
+
+    drawSection('Datos personales', [
+      { label: 'Documento', value: persona.identityNumber ?? undefined },
+      { label: 'Sexo', value: persona.sex ?? undefined },
+      { label: 'Fecha de nacimiento', value: formatDate(persona.birthdate ?? null) },
+      { label: 'Edad', value: persona.age ? `${persona.age} años` : undefined },
+      { label: 'Domicilio', value: summarizeAddress(persona) },
+      { label: 'Teléfonos', value: phones || null },
+      { label: 'Emails', value: emails || null },
+      { label: 'Notas', value: persona.notes ?? undefined }
+    ]);
+
+    const contactLines: string[] = [];
+    if (phones) contactLines.push(`Teléfonos: ${phones}`);
+    if (emails) contactLines.push(`Emails: ${emails}`);
+    const networks = (persona.socialNetworks ?? [])
+      .map((entry) => `${entry.network}: ${entry.handle}`)
+      .join(' · ');
+    if (networks) contactLines.push(`Redes: ${networks}`);
+    drawListSection('Contactos', contactLines);
+  }
+
+  drawSection('Información del caso', [
+    { label: 'Carátula', value: caseData.caratula ?? undefined },
+    { label: 'Delito', value: caseData.delito ?? undefined },
+    { label: 'Juzgado', value: caseData.juzgadoInterventor ?? undefined },
+    { label: 'Fiscalía', value: caseData.fiscalia ?? undefined },
+    { label: 'Secretaría', value: caseData.secretaria ?? undefined },
+    { label: 'Fecha del hecho', value: caseData.fechaHecho ? formatDate(caseData.fechaHecho) : null },
+    { label: 'Recompensa', value: rewardSummary() }
+  ]);
+
+  if (caseData.additionalInfo.length > 0) {
+    drawListSection(
+      'Información complementaria',
+      caseData.additionalInfo.map((entry) => `${entry.label}: ${entry.value}`)
+    );
+  }
+
+  doc.moveDown(0.6);
+  doc.font('Helvetica').fontSize(10).fillColor('#6b7280');
+  doc.text(`Creado: ${new Date(caseData.creadoEn).toLocaleString()}`);
+  doc.text(`Actualizado: ${new Date(caseData.actualizadoEn).toLocaleString()}`);
+
+  doc.end();
+
+  const buffer = await bufferPromise;
+  return { buffer, fileName };
+};
+
+export const exportCasesToExcel = async (ids: string[]) => {
+  const records = await prisma.case.findMany({
+    where: { id: { in: ids } },
+    orderBy: { creadoEn: 'desc' },
+    include: caseInclude
+  });
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Casos');
+
+  sheet.columns = [
+    { header: 'ID', key: 'id', width: 36 },
+    { header: 'Estado', key: 'estado', width: 18 },
+    { header: 'Fuerza', key: 'fuerza', width: 20 },
+    { header: 'Expediente', key: 'expediente', width: 20 },
+    { header: 'Jurisdicción', key: 'jurisdiccion', width: 18 },
+    { header: 'Carátula', key: 'caratula', width: 25 },
+    { header: 'Delito', key: 'delito', width: 25 },
+    { header: 'Recompensa', key: 'recompensa', width: 15 },
+    { header: 'Monto recompensa', key: 'monto', width: 18 },
+    { header: 'Creado', key: 'creado', width: 22 },
+    { header: 'Actualizado', key: 'actualizado', width: 22 },
+    { header: 'Nombre', key: 'nombre', width: 25 },
+    { header: 'Documento', key: 'documento', width: 22 },
+    { header: 'Sexo', key: 'sexo', width: 12 },
+    { header: 'Nacimiento', key: 'nacimiento', width: 18 },
+    { header: 'Edad', key: 'edad', width: 8 },
+    { header: 'Domicilio', key: 'domicilio', width: 30 },
+    { header: 'Teléfonos', key: 'telefonos', width: 30 },
+    { header: 'Emails', key: 'emails', width: 30 },
+    { header: 'Notas', key: 'notas', width: 40 },
+    { header: 'Información complementaria', key: 'info', width: 45 }
+  ];
+
+  records.forEach((record) => {
+    const serialized = serializeCase(record);
+    const persona = serialized.persona;
+    const phones = [persona?.phone, ...(persona?.phones ?? []).map((entry) => entry.value)]
+      .filter(Boolean)
+      .join(' | ');
+    const emails = [persona?.email, ...(persona?.emails ?? []).map((entry) => entry.value)]
+      .filter(Boolean)
+      .join(' | ');
+    const info = serialized.additionalInfo.map((entry) => `${entry.label}: ${entry.value}`).join(' | ');
+
+    const rewardAmountCell = serialized.recompensa === 'SI'
+      ? serialized.rewardAmount ?? 'Monto no confirmado'
+      : '—';
+
+    sheet.addRow({
+      id: serialized.id,
+      estado: translateEstadoLabel(serialized.estadoRequerimiento),
+      fuerza: serialized.fuerzaAsignada ?? 'S/D',
+      expediente: serialized.numeroCausa ?? '—',
+      jurisdiccion: formatEnum(serialized.jurisdiccion),
+      caratula: serialized.caratula ?? '—',
+      delito: serialized.delito ?? '—',
+      recompensa: serialized.recompensa,
+      monto: rewardAmountCell,
+      creado: new Date(serialized.creadoEn).toLocaleString(),
+      actualizado: new Date(serialized.actualizadoEn).toLocaleString(),
+      nombre: persona ? `${persona.firstName} ${persona.lastName}`.trim() : '—',
+      documento: persona?.identityNumber ?? '—',
+      sexo: persona?.sex ?? '—',
+      nacimiento: persona?.birthdate ? new Date(persona.birthdate).toLocaleDateString() : '—',
+      edad: persona?.age ?? (persona?.birthdate ? computeAge(new Date(persona.birthdate)) : '—'),
+      domicilio: summarizeAddress(persona) ?? '—',
+      telefonos: phones || '—',
+      emails: emails || '—',
+      notas: persona?.notes ?? '—',
+      info: info || '—'
+    });
+  });
+
+  const buffer = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
+  return Buffer.from(buffer);
+};
+
+export const generateCaseZip = async (id: string) => {
+  const caseRecord = await prisma.case.findUnique({ where: { id }, include: caseInclude });
+  if (!caseRecord) {
+    throw new AppError('Caso no encontrado', 404, true);
+  }
+
+  const serialized = serializeCase(caseRecord);
+  const persona = serialized.persona;
+  const fullName = [persona?.firstName, persona?.lastName].filter(Boolean).join(' ').trim();
+
+  const rootFolder = buildCaseFileBaseName(fullName);
+  const zipFileName = buildCaseZipFileName(fullName);
+
+  const [pdfResult, excelBuffer] = await Promise.all([
+    generateCasePdf(id),
+    exportCasesToExcel([id])
+  ]);
+
+  const { buffer: pdfBuffer, fileName: pdfFileName } = pdfResult;
+  const excelFileName = buildCaseExcelFileName(fullName);
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  const output = new PassThrough();
+  const chunks: Buffer[] = [];
+
+  const bufferPromise = new Promise<Buffer>((resolve, reject) => {
+    output.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    output.on('end', () => resolve(Buffer.concat(chunks)));
+    output.on('error', reject);
+    archive.on('error', reject);
+  });
+
+  archive.pipe(output);
+
+  const usedEntries = new Set<string>();
+  const reserveEntry = (entryPath: string) => {
+    let candidate = entryPath;
+    let suffix = 1;
+
+    const lastSlash = entryPath.lastIndexOf('/');
+    const dir = lastSlash >= 0 ? entryPath.slice(0, lastSlash) : '';
+    const fileName = lastSlash >= 0 ? entryPath.slice(lastSlash + 1) : entryPath;
+    const extIndex = fileName.lastIndexOf('.');
+    const base = extIndex > 0 ? fileName.slice(0, extIndex) : fileName;
+    const ext = extIndex > 0 ? fileName.slice(extIndex) : '';
+
+    while (usedEntries.has(candidate)) {
+      const nextName = `${base}_${suffix}${ext}`;
+      candidate = dir ? `${dir}/${nextName}` : nextName;
+      suffix += 1;
+    }
+
+    usedEntries.add(candidate);
+    return candidate;
+  };
+
+  const appendUnderRoot = (relativePath: string, data: Buffer) => {
+    const normalized = relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
+    const withRoot = `${rootFolder}/${normalized}`;
+    const reserved = reserveEntry(withRoot);
+    archive.append(data, { name: reserved });
+  };
+
+  const sanitizeEntryComponent = (value: string) => {
+    const normalized = removeDiacritics(value);
+    const trimmed = normalized.replace(/[^A-Za-z0-9._-]/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
+    return trimmed.slice(0, 150);
+  };
+
+  const resolveExtension = (originalName?: string | null, mimeType?: string | null) => {
+    const ext = originalName ? path.extname(originalName) : '';
+    if (ext) {
+      return ext.toLowerCase();
+    }
+    if (mimeType) {
+      const mapped = MIME_EXTENSION_MAP[mimeType];
+      if (mapped) {
+        return mapped;
+      }
+    }
+    return '';
+  };
+
+  appendUnderRoot(pdfFileName, pdfBuffer);
+  appendUnderRoot(excelFileName, excelBuffer);
+
+  const mediaItems = caseRecord.media;
+
+  const appendMediaGroup = async (items: typeof mediaItems, kind: CaseMediaKind, folderLabel: string) => {
+    const filtered = items.filter((media) => media.kind === kind);
+    let counter = 1;
+
+    for (const media of filtered) {
+      const absolutePath = path.join(uploadsStaticPath, media.filePath);
+      let fileBuffer: Buffer;
+      try {
+        fileBuffer = await fs.readFile(absolutePath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          continue;
+        }
+        throw error;
+      }
+
+      const extension = resolveExtension(media.originalName, media.mimeType) || '.bin';
+      const fallbackName = `${folderLabel.toLowerCase()}_${String(counter).padStart(3, '0')}${extension}`;
+      const originalName = media.originalName ? sanitizeEntryComponent(media.originalName) : '';
+      const fileName = originalName || fallbackName;
+      appendUnderRoot(`${folderLabel}/${fileName}`, fileBuffer);
+      counter += 1;
+    }
+  };
+
+  await appendMediaGroup(mediaItems, CaseMediaKind.PHOTO, 'FOTOS');
+  await appendMediaGroup(mediaItems, CaseMediaKind.DOCUMENT, 'DOCUMENTOS');
+
+  await archive.finalize();
+  const buffer = await bufferPromise;
+
+  return { buffer, fileName: zipFileName };
 };
 
 export const createCase = async (input: CreateCaseInput) => {

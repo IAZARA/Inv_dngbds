@@ -3,15 +3,35 @@ import axios from 'axios';
 let authToken: string | null = localStorage.getItem('token');
 const unauthorizedSubscribers = new Set<() => void>();
 
-let baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
-if (!baseURL.endsWith('/api')) {
-  baseURL = `${baseURL.replace(/\/$/, '')}/api`;
-}
+const DEFAULT_BASE = 'http://localhost:4000';
+const rawBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? DEFAULT_BASE;
+
+const trimTrailingSlashes = (value: string) => value.replace(/\/+$/, '');
+
+const normalizedBase = trimTrailingSlashes(rawBase) || DEFAULT_BASE;
+const apiBase = normalizedBase.endsWith('/api')
+  ? normalizedBase
+  : `${trimTrailingSlashes(normalizedBase)}/api`;
+
+const assetsBaseURL = trimTrailingSlashes(apiBase.replace(/\/api$/, '')) || apiBase;
 
 export const api = axios.create({
-  baseURL,
+  baseURL: apiBase,
   withCredentials: false
 });
+
+export const resolveAssetUrl = (path: string) => {
+  if (!path) {
+    return path;
+  }
+  if (/^(https?:)?\/\//.test(path)) {
+    return path;
+  }
+  if (path.startsWith('/')) {
+    return `${assetsBaseURL}${path}`;
+  }
+  return `${assetsBaseURL}/${path}`;
+};
 
 export const setAuthToken = (token: string | null) => {
   authToken = token;

@@ -1,22 +1,28 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { CaseRecord, EstadoRequerimiento } from '../../types';
-import {
-  collectContactList,
-  collectSocialList,
-  computeAge,
-  formatOptionText,
-  translateEstado
-} from './helpers';
+import { formatOptionText, translateEstado } from './helpers';
 
 type CasesListProps = {
   isLoading: boolean;
   isError: boolean;
   cases: CaseRecord[];
   filteredCases: CaseRecord[];
+  paginatedCases: CaseRecord[];
   canEdit: boolean;
+  canDelete: boolean;
   onEdit: (record: CaseRecord) => void;
   onDelete: (record: CaseRecord) => void;
   deleteInProgressId: string | null;
+  page: number;
+  totalPages: number;
+  pageSize: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+  onCreate: () => void;
+  selectMode: boolean;
+  selectedIds: string[];
+  onToggleSelection: (id: string) => void;
 };
 
 const CasesList = ({
@@ -24,12 +30,45 @@ const CasesList = ({
   isError,
   cases,
   filteredCases,
+  paginatedCases,
   canEdit,
+  canDelete,
   onEdit,
   onDelete,
-  deleteInProgressId
+  deleteInProgressId,
+  page,
+  totalPages,
+  pageSize,
+  totalItems,
+  onPageChange,
+  onCreate,
+  selectMode,
+  selectedIds,
+  onToggleSelection
 }: CasesListProps) => {
   const navigate = useNavigate();
+  const [openActionsId, setOpenActionsId] = useState<string | null>(null);
+
+  const closeActionsMenu = () => setOpenActionsId(null);
+
+  const handleToggleActions = (id: string) => {
+    setOpenActionsId((current) => (current === id ? null : id));
+  };
+
+  const handleViewDetails = (id: string) => {
+    closeActionsMenu();
+    navigate(`/cases/${id}`);
+  };
+
+  const handleEdit = (record: CaseRecord) => {
+    closeActionsMenu();
+    onEdit(record);
+  };
+
+  const handleDelete = (record: CaseRecord) => {
+    closeActionsMenu();
+    onDelete(record);
+  };
 
   const sanitizeValue = (value?: string | null) => {
     if (!value) return null;
@@ -83,6 +122,13 @@ const CasesList = ({
       <section className="card">
         <h3>Casos cargados</h3>
         <p>No hay casos registrados.</p>
+        {canEdit && (
+          <div className="empty-state">
+            <button className="btn primary" type="button" onClick={onCreate}>
+              + Crear caso
+            </button>
+          </div>
+        )}
       </section>
     );
   }
@@ -92,178 +138,184 @@ const CasesList = ({
       <section className="card">
         <h3>Casos cargados</h3>
         <p>No se encontraron casos con los filtros seleccionados.</p>
+        {canEdit && (
+          <div className="empty-state">
+            <button className="btn primary" type="button" onClick={onCreate}>
+              + Crear caso
+            </button>
+          </div>
+        )}
       </section>
     );
   }
 
+  const items = paginatedCases.length > 0 ? paginatedCases : filteredCases;
+
+  const firstItemIndex = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const lastItemIndex = totalItems === 0 ? 0 : Math.min(page * pageSize, totalItems);
+
   return (
     <section className="card">
-      <h3>Casos cargados</h3>
+      <header className="case-list__header">
+        <h3>Casos cargados</h3>
+        <p>
+          Mostrando {firstItemIndex}-{lastItemIndex} de {totalItems} casos
+        </p>
+      </header>
       <div className="cases-summary-list">
-        {filteredCases.map((item) => {
-          const phoneList = collectContactList(item.persona?.phone ?? null, item.persona?.phones);
-          const emailList = collectContactList(item.persona?.email ?? null, item.persona?.emails);
-          const socialList = collectSocialList(item.persona?.socialNetworks);
+        {items.map((item) => {
           const isDeleting = deleteInProgressId === item.id;
-          const primaryPhoto = item.photos.find((photo) => photo.isPrimary);
           const statusLabel = translateEstado(item.estadoRequerimiento);
           const personaFullName = [item.persona?.firstName, item.persona?.lastName]
             .filter(Boolean)
             .join(' ');
-          const delito = sanitizeValue(item.delito);
-          const fuerza = sanitizeValue(item.fuerzaAsignada);
+          const fuerza = sanitizeValue(item.fuerzaAsignada ?? 'S/D');
           const formattedJurisdiccion = formatOptionText(item.jurisdiccion);
           const jurisdiccion = formattedJurisdiccion === 'Sin dato'
             ? null
             : sanitizeValue(formattedJurisdiccion);
-          const caratula = sanitizeValue(item.caratula);
           const numeroCausa = sanitizeValue(item.numeroCausa);
-          const rewardAmount = sanitizeValue(item.rewardAmount ?? null);
-          const fechaHecho = item.fechaHecho ? new Date(item.fechaHecho).toLocaleDateString() : null;
-          const ageLabel = item.persona?.birthdate
-            ? computeAge(item.persona.birthdate)
-            : item.persona?.age
-              ? String(item.persona.age)
-              : null;
-
           const statusClass = statusVariant(item.estadoRequerimiento);
 
+          const isSelected = selectedIds.includes(item.id);
+
           return (
-            <article key={item.id} className={`case-summary case-summary--${statusClass}`}>
-              <header className="case-summary__header">
-                <div className="case-summary__title">
-                  <h3>{(personaFullName || 'Sin persona asociada').toUpperCase()}</h3>
-                  {item.persona?.identityNumber && (
-                    <p>
-                      <strong>Documento:</strong> {item.persona.documentType ?? 'S/D'}{' '}
-                      {item.persona.identityNumber}
-                    </p>
-                  )}
+            <article
+              key={item.id}
+              className={`case-row case-row--${statusClass}${isSelected ? ' is-selected' : ''}`}
+            >
+              <div className="case-row__left">
+                {selectMode && (
+                  <label className="case-row__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => onToggleSelection(item.id)}
+                    />
+                    <span>{isSelected ? 'Seleccionado' : 'Seleccionar'}</span>
+                  </label>
+                )}
+                <span className={`case-row__badge case-row__badge--${statusClass}`}>{statusLabel}</span>
+                <div className="case-row__main">
+                  <h4>{personaFullName || 'Sin persona asociada'}</h4>
+                  <p className="case-row__meta">
+                    {numeroCausa
+                      ? `Expediente ${numeroCausa}`
+                      : jurisdiccion
+                        ? `Jurisdicción ${jurisdiccion}`
+                        : 'Sin referencia'}
+                  </p>
                 </div>
-                <div className="case-summary__actions">
+              </div>
+              <div className="case-row__center">
+                <p>
+                  <strong>Estado:</strong> {statusLabel}
+                </p>
+                <p>
+                  <strong>Fuerza:</strong> {fuerza ?? 'S/D'}
+                </p>
+              </div>
+              <div className="case-row__actions case-row__actions--desktop">
+                <button
+                  className="btn ghost"
+                  type="button"
+                  onClick={() => handleViewDetails(item.id)}
+                >
+                  Ver detalles
+                </button>
+                <button
+                  className="btn ghost"
+                  type="button"
+                  onClick={() => handleEdit(item)}
+                  disabled={!canEdit || selectMode}
+                >
+                  Editar
+                </button>
+                <button
+                  className="btn ghost"
+                  type="button"
+                  onClick={() => handleDelete(item)}
+                  disabled={!canDelete || isDeleting || selectMode}
+                >
+                  {isDeleting ? 'Eliminando…' : 'Eliminar'}
+                </button>
+              </div>
+              <div className="case-row__actions case-row__actions--mobile">
+                <button
+                  type="button"
+                  className={`case-row__mobile-toggle${openActionsId === item.id ? ' is-open' : ''}`}
+                  onClick={() => handleToggleActions(item.id)}
+                  aria-expanded={openActionsId === item.id}
+                  aria-controls={`case-actions-${item.id}`}
+                  aria-label="Mostrar acciones"
+                >
+                  <span aria-hidden="true">⋯</span>
+                </button>
+                <div
+                  id={`case-actions-${item.id}`}
+                  className={`case-row__mobile-menu${openActionsId === item.id ? ' is-open' : ''}`}
+                >
                   <button
-                    className="case-action"
+                    className="btn ghost"
                     type="button"
-                    onClick={() => navigate(`/cases/${item.id}`)}
-                    title="Ver legajo"
+                    onClick={() => handleViewDetails(item.id)}
                   >
-                    👁
+                    Ver detalles
                   </button>
                   <button
-                    className="case-action"
+                    className="btn ghost"
                     type="button"
-                    onClick={() => onEdit(item)}
-                    disabled={!canEdit}
-                    title="Editar caso"
+                    onClick={() => handleEdit(item)}
+                    disabled={!canEdit || selectMode}
                   >
-                    ✎
+                    Editar
                   </button>
                   <button
-                    className="case-action"
+                    className="btn ghost"
                     type="button"
-                    onClick={() => onDelete(item)}
-                    disabled={!canEdit || isDeleting}
-                    title="Eliminar caso"
+                    onClick={() => handleDelete(item)}
+                    disabled={!canDelete || isDeleting || selectMode}
                   >
-                    🗑
+                    {isDeleting ? 'Eliminando…' : 'Eliminar'}
                   </button>
-                </div>
-              </header>
-
-              <div className="case-summary__layout">
-                <div className="case-summary__portrait">
-                  {primaryPhoto ? (
-                    <img src={primaryPhoto.url} alt={primaryPhoto.description ?? 'Foto principal'} />
-                  ) : (
-                    <span>Sin foto</span>
-                  )}
-                  <span className={`case-status case-status--${statusClass}`}>{statusLabel}</span>
-                </div>
-
-                <div className="case-summary__info">
-                  <div>
-                    {ageLabel && (
-                      <p>
-                        <strong>Edad:</strong> {ageLabel} años
-                      </p>
-                    )}
-                    {item.persona?.sex && (
-                      <p>
-                        <strong>Género:</strong> {sanitizeValue(item.persona.sex) ?? item.persona.sex}
-                      </p>
-                    )}
-                    {numeroCausa && (
-                      <p>
-                        <strong>Expediente:</strong> {numeroCausa}
-                      </p>
-                    )}
-                    {caratula && (
-                      <p>
-                        <strong>Carátula:</strong> {caratula}
-                      </p>
-                    )}
-                    {delito && (
-                      <p>
-                        <strong>Delito:</strong> {delito}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    {jurisdiccion && (
-                      <p>
-                        <strong>Jurisdicción:</strong> {jurisdiccion}
-                      </p>
-                    )}
-                    {fuerza && (
-                      <p>
-                        <strong>Fuerza asignada:</strong> {fuerza}
-                      </p>
-                    )}
-                    {fechaHecho && (
-                      <p>
-                        <strong>Fecha del hecho:</strong> {fechaHecho}
-                      </p>
-                    )}
-                    {item.recompensa === 'SI' && rewardAmount && (
-                      <p>
-                        <strong>Recompensa:</strong> ${rewardAmount}
-                      </p>
-                    )}
-                    <p>
-                      <strong>Archivos:</strong> {item.photos.length} foto(s) · {item.documents.length} documento(s)
-                    </p>
-                  </div>
-
-                  <div>
-                    <p>
-                      <strong>Fecha de registro:</strong> {new Date(item.creadoEn).toLocaleDateString()}
-                    </p>
-                    <p>
-                      <strong>Última actualización:</strong> {new Date(item.actualizadoEn).toLocaleDateString()}
-                    </p>
-                    {phoneList.length > 0 && (
-                      <p>
-                        <strong>Teléfonos:</strong> {phoneList.join(' · ')}
-                      </p>
-                    )}
-                    {emailList.length > 0 && (
-                      <p>
-                        <strong>Emails:</strong> {emailList.join(' · ')}
-                      </p>
-                    )}
-                    {socialList.length > 0 && (
-                      <p>
-                        <strong>Redes:</strong> {socialList.join(' · ')}
-                      </p>
-                    )}
-                  </div>
                 </div>
               </div>
             </article>
           );
         })}
       </div>
+      {totalPages > 1 && (
+        <footer className="case-pagination">
+          <button
+            type="button"
+            className="pagination-btn"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 1}
+          >
+            ←
+          </button>
+          <div className="pagination-pages">
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+              <button
+                key={pageNumber}
+                type="button"
+                className={`pagination-btn${pageNumber === page ? ' is-active' : ''}`}
+                onClick={() => onPageChange(pageNumber)}
+              >
+                {pageNumber}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="pagination-btn"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page === totalPages}
+          >
+            →
+          </button>
+        </footer>
+      )}
     </section>
   );
 };

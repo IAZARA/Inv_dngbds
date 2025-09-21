@@ -68,6 +68,8 @@ export const mapCaseToForm = (record: CaseRecord): CaseFormValues => ({
   estadoRequerimiento: record.estadoRequerimiento ?? 'CAPTURA_VIGENTE',
   fuerzaAsignada: (record.fuerzaAsignada as CaseFormValues['fuerzaAsignada']) ?? 'S/D',
   recompensa: record.recompensa ?? 'SIN_DATO',
+  rewardAmountStatus:
+    record.recompensa === 'SI' && !record.rewardAmount ? 'UNKNOWN' : 'KNOWN',
   rewardAmount: record.rewardAmount ?? '',
   persona: {
     personId: record.persona?.id,
@@ -147,8 +149,13 @@ export const buildPayload = (values: CaseFormValues) => {
     estadoRequerimiento: values.estadoRequerimiento,
     fuerzaAsignada: values.fuerzaAsignada,
     recompensa: values.recompensa,
+    rewardAmountStatus: values.recompensa === 'SI' ? values.rewardAmountStatus : 'KNOWN',
     rewardAmount:
-      values.recompensa === 'SI' ? blankToUndefined(values.rewardAmount) : undefined,
+      values.recompensa === 'SI'
+        ? values.rewardAmountStatus === 'UNKNOWN'
+          ? null
+          : blankToUndefined(values.rewardAmount)
+        : undefined,
     persona: {
       personId: values.persona.personId,
       firstName: values.persona.firstName,
@@ -247,5 +254,22 @@ export const translateEstado = (estado: EstadoRequerimiento) => {
       return 'Detenido';
     default:
       return estado;
+  }
+};
+
+export const translateFuerza = (fuerza: string) => {
+  switch (fuerza) {
+    case 'PFA':
+      return 'Policía Federal';
+    case 'GNA':
+      return 'Gendarmería';
+    case 'PSA':
+      return 'Prefectura';
+    case 'PNA':
+      return 'Policía de Seguridad Aeroportuaria';
+    case 'S/D':
+      return 'S/D';
+    default:
+      return fuerza;
   }
 };

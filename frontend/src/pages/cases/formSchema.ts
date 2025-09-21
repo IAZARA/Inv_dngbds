@@ -9,6 +9,7 @@ import {
   nationalityOptions,
   recompensaAmountRegex,
   recompensaOptions,
+  rewardAmountStatusOptions,
   sexOptions
 } from './constants';
 
@@ -76,6 +77,7 @@ export const caseFormSchema = z
     estadoRequerimiento: z.enum(estadoRequerimientoOptions),
     fuerzaAsignada: z.enum(fuerzaIntervinienteOptions).default('S/D'),
     recompensa: z.enum(recompensaOptions).default('SIN_DATO'),
+    rewardAmountStatus: z.enum(rewardAmountStatusOptions).default('KNOWN'),
     rewardAmount: z
       .string()
       .regex(recompensaAmountRegex, 'Monto inválido (máx 2 decimales)')
@@ -85,7 +87,11 @@ export const caseFormSchema = z
     additionalInfo: z.array(additionalInfoItemSchema).default([])
   })
   .superRefine((data, ctx) => {
-    if (data.recompensa === 'SI' && (!data.rewardAmount || data.rewardAmount.trim().length === 0)) {
+    if (
+      data.recompensa === 'SI' &&
+      data.rewardAmountStatus === 'KNOWN' &&
+      (!data.rewardAmount || data.rewardAmount.trim().length === 0)
+    ) {
       ctx.addIssue({
         path: ['rewardAmount'],
         code: z.ZodIssueCode.custom,
@@ -119,6 +125,7 @@ export const defaultValues: CaseFormValues = {
   estadoRequerimiento: 'CAPTURA_VIGENTE',
   fuerzaAsignada: 'S/D',
   recompensa: 'SIN_DATO',
+  rewardAmountStatus: 'KNOWN',
   rewardAmount: '',
   persona: {
     personId: undefined,

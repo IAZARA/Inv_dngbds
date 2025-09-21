@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,11 @@ const CasesPage = () => {
     [user]
   );
 
+  const canDelete = useMemo(
+    () => (user ? user.role === 'ADMIN' : false),
+    [user]
+  );
+
   const [showForm, setShowForm] = useState(false);
   const [editingCase, setEditingCase] = useState<CaseRecord | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,6 +35,11 @@ const CasesPage = () => {
     useState<'TODAS' | CaseFormValues['jurisdiccion']>('TODAS');
   const [fuerzaFilter, setFuerzaFilter] =
     useState<'TODAS' | CaseFormValues['fuerzaAsignada']>('TODAS');
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [exporting, setExporting] = useState(false);
 
   const casesQuery = useQuery({
     queryKey: ['cases'],
@@ -121,6 +131,31 @@ const CasesPage = () => {
     });
   }, [handledCases, estadoFilter, fuerzaFilter, jurisdiccionFilter, searchTerm]);
 
+  const totalPages = useMemo(() => {
+    if (filteredCases.length === 0) return 1;
+    return Math.ceil(filteredCases.length / PAGE_SIZE);
+  }, [filteredCases.length]);
+
+  const paginatedCases = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredCases.slice(start, start + PAGE_SIZE);
+  }, [filteredCases, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, estadoFilter, jurisdiccionFilter, fuerzaFilter, handledCases.length]);
+
+  useEffect(() => {
+    setSelectedIds((current) =>
+      current.filter((id) => handledCases.some((item) => item.id === id))
+    );
+  }, [handledCases]);
+
+  const handleChangePage = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+
   const handleStartCreate = () => {
     setEditingCase(null);
     setShowForm(true);
@@ -146,7 +181,7 @@ const CasesPage = () => {
   };
 
   const handleDeleteRecord = (record: CaseRecord) => {
-    if (!canEdit) return;
+    if (!canDelete) return;
     if (window.confirm('¿Eliminar caso?')) {
       deleteMutation.mutate(record.id);
     }
@@ -162,19 +197,76 @@ const CasesPage = () => {
   const deleteInProgressId = deleteMutation.variables ?? null;
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
+  const toggleSelectMode = () => {
+    setSelectMode((prev) => {
+      if (prev) {
+        setSelectedIds([]);
+      }
+      return !prev;
+    });
+  };
+
+  const handleToggleSelection = (id: string) => {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    );
+  };
+
+  const handleExportExcel = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      setExporting(true);
+      const response = await api.post(
+        '/cases/export-excel',
+        { ids: selectedIds },
+        { responseType: 'blob' }
+      );
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `casos_${Date.now()}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setSelectMode(false);
+      setSelectedIds([]);
+    } catch (error) {
+      console.error('No se pudo exportar los casos', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="page">
-      <div
-        className="page-header"
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-      >
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2>Casos</h2>
           <p>Gestiona los expedientes de investigación y los datos asociados a cada persona.</p>
         </div>
-        <button className="btn primary" type="button" onClick={handleStartCreate} disabled={!canEdit}>
-          + Nuevo caso
-        </button>
+        <div className="case-toolbar">
+          <button className="btn ghost" type="button" onClick={toggleSelectMode} disabled={!canEdit}>
+            {selectMode ? 'Cancelar selección' : 'Exportar a Excel'}
+          </button>
+          {selectMode ? (
+            <button
+              className="btn primary"
+              type="button"
+              onClick={handleExportExcel}
+              disabled={selectedIds.length === 0 || exporting}
+            >
+              {exporting ? 'Descargando…' : `Descargar (${selectedIds.length})`}
+            </button>
+          ) : (
+            <button className="btn primary" type="button" onClick={handleStartCreate} disabled={!canEdit}>
+              + Nuevo caso
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm ? (
@@ -205,10 +297,21 @@ const CasesPage = () => {
             isError={casesQuery.isError}
             cases={handledCases}
             filteredCases={filteredCases}
+            paginatedCases={paginatedCases}
             canEdit={canEdit}
+            canDelete={canDelete}
             onEdit={handleEditRecord}
             onDelete={handleDeleteRecord}
             deleteInProgressId={deleteInProgressId}
+            page={currentPage}
+            totalPages={totalPages}
+            pageSize={PAGE_SIZE}
+            totalItems={filteredCases.length}
+            onPageChange={handleChangePage}
+            onCreate={handleStartCreate}
+            selectMode={selectMode}
+            selectedIds={selectedIds}
+            onToggleSelection={handleToggleSelection}
           />
         </>
       )}

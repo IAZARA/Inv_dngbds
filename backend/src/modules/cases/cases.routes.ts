@@ -9,6 +9,9 @@ import {
   deleteCasePhotoHandler,
   getCaseHandler,
   listCasesHandler,
+  exportCasePdfHandler,
+  exportCaseZipHandler,
+  exportCasesExcelHandler,
   updateCaseDocumentDescriptionHandler,
   updateCaseHandler,
   updateCasePhotoDescriptionHandler,
@@ -24,6 +27,13 @@ router.use(requireAuth);
 
 router.get('/', listCasesHandler);
 router.get('/:id', getCaseHandler);
+router.get('/:id/export', exportCasePdfHandler);
+router.get('/:id/export-zip', exportCaseZipHandler);
+router.post(
+  '/export-excel',
+  requireRole(UserRole.ADMIN, UserRole.OPERATOR),
+  exportCasesExcelHandler
+);
 router.post('/', requireRole(UserRole.ADMIN, UserRole.OPERATOR), createCaseHandler);
 router.patch('/:id', requireRole(UserRole.ADMIN, UserRole.OPERATOR), updateCaseHandler);
 router.delete('/:id', requireRole(UserRole.ADMIN, UserRole.OPERATOR), deleteCaseHandler);

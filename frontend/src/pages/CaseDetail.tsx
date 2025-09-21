@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api } from '../lib/api';
+import { api, resolveAssetUrl } from '../lib/api';
 import type { CaseMediaItem, CaseRecord, EstadoRequerimiento } from '../types';
 import {
   collectContactList,
@@ -47,19 +47,6 @@ const statusVariant = (estado: EstadoRequerimiento) => {
   }
 };
 
-const statusDescription = (estado: EstadoRequerimiento) => {
-  switch (estado) {
-    case 'CAPTURA_VIGENTE':
-      return 'Captura vigente. Coordinar con la fuerza asignada para el seguimiento del caso.';
-    case 'SIN_EFECTO':
-      return 'A la espera de documentación oficial para cerrar la búsqueda.';
-    case 'DETENIDO':
-      return 'La persona fue localizada. Validar información antes de archivar el expediente.';
-    default:
-      return '';
-  }
-};
-
 const CaseDetailPage = () => {
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
@@ -76,6 +63,8 @@ const CaseDetailPage = () => {
   const isLoading = caseQuery.isLoading;
   const isError = caseQuery.isError;
   const caseRecord = caseQuery.data;
+  const [downloading, setDownloading] = useState(false);
+  const [zipDownloading, setZipDownloading] = useState(false);
 
   const persona = caseRecord?.persona ?? null;
   const statusClass = caseRecord ? statusVariant(caseRecord.estadoRequerimiento) : 'danger';
@@ -128,7 +117,13 @@ const CaseDetailPage = () => {
   const juzgado = sanitizeValue(caseRecord.juzgadoInterventor);
   const secretaria = sanitizeValue(caseRecord.secretaria);
   const fiscalia = sanitizeValue(caseRecord.fiscalia);
-  const rewardAmount = caseRecord.recompensa === 'SI' ? formatCurrency(caseRecord.rewardAmount) : null;
+  const hasReward = caseRecord.recompensa === 'SI';
+  const rewardAmountValue = hasReward && caseRecord.rewardAmount
+    ? formatCurrency(caseRecord.rewardAmount)
+    : null;
+  const rewardLabel = hasReward
+    ? rewardAmountValue ?? 'Monto no confirmado'
+    : null;
   const fechaHecho = caseRecord.fechaHecho
     ? new Date(caseRecord.fechaHecho).toLocaleDateString()
     : null;
@@ -173,148 +168,355 @@ const CaseDetailPage = () => {
     (entry) => sanitizeValue(entry.label) && sanitizeValue(entry.value)
   );
 
+  type Highlight = { label: string; value: string };
+
+  const personaNotes = persona?.notes && sanitizeValue(persona.notes) ? persona.notes : null;
+
+  const personalHighlights: Highlight[] = [];
+
+  if (personaFullName) {
+    personalHighlights.push({
+      label: 'Nombre completo',
+      value: personaFullName
+    });
+  }
+
+  if (persona?.identityNumber) {
+    personalHighlights.push({
+      label: 'Documento',
+      value: `${persona.documentType ?? 'S/D'} ${persona.identityNumber}`
+    });
+  }
+
+  if (birthdateLabel) {
+    personalHighlights.push({
+      label: 'Fecha de nacimiento',
+      value: birthdateLabel
+    });
+  }
+
+  if (nationalityText) {
+    personalHighlights.push({
+      label: 'Nacionalidad',
+      value: nationalityText
+    });
+  }
+
+  if (address) {
+    personalHighlights.push({
+      label: 'Domicilio',
+      value: address
+    });
+  }
+
+  const caseHighlights: Highlight[] = [];
+
+  if (statusLabel) {
+    caseHighlights.push({
+      label: 'Estado del requerimiento',
+      value: statusLabel
+    });
+  }
+
+  if (numeroCausa) {
+    caseHighlights.push({
+      label: 'Número de expediente',
+      value: numeroCausa
+    });
+  }
+
+  if (caratula) {
+    caseHighlights.push({
+      label: 'Carátula',
+      value: caratula
+    });
+  }
+
+  if (delito) {
+    caseHighlights.push({
+      label: 'Delito principal',
+      value: delito
+    });
+  }
+
+  if (jurisdiccion) {
+    caseHighlights.push({
+      label: 'Jurisdicción',
+      value: jurisdiccion
+    });
+  }
+
+  if (fuerza) {
+    caseHighlights.push({
+      label: 'Fuerza asignada',
+      value: fuerza
+    });
+  }
+
+  if (fechaHecho) {
+    caseHighlights.push({
+      label: 'Fecha del hecho',
+      value: fechaHecho
+    });
+  }
+
+  if (juzgado) {
+    caseHighlights.push({
+      label: 'Juzgado interventor',
+      value: juzgado
+    });
+  }
+
+  if (secretaria) {
+    caseHighlights.push({
+      label: 'Secretaría',
+      value: secretaria
+    });
+  }
+
+  if (fiscalia) {
+    caseHighlights.push({
+      label: 'Fiscalía',
+      value: fiscalia
+    });
+  }
+
+  if (hasReward) {
+    caseHighlights.push({
+      label: 'Recompensa',
+      value: rewardLabel ?? 'Sí'
+    });
+  }
+
+  const hasContactInfo = phoneList.length > 0 || emailList.length > 0 || socialList.length > 0;
+
+  const sanitizeForFilename = (value: string) =>
+    value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Za-z0-9\s]/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
+
+  const buildDownloadBaseName = () => {
+    if (!personaFullName) {
+      return 'LEGAJO SIN PERSONA';
+    }
+    const sanitized = sanitizeForFilename(personaFullName);
+    if (!sanitized) {
+      return 'LEGAJO SIN PERSONA';
+    }
+    return `LEGAJO ${sanitized.toUpperCase()}`;
+  };
+
+  const buildFallbackPdfFileName = () => `${buildDownloadBaseName()}.pdf`;
+  const buildFallbackZipFileName = () => `${buildDownloadBaseName()}.zip`;
+
+  const parseFilenameFromHeader = (header?: string | null) => {
+    if (!header) return null;
+    const utfMatch = header.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utfMatch?.[1]) {
+      try {
+        return decodeURIComponent(utfMatch[1]);
+      } catch (error) {
+        console.warn('No se pudo decodificar filename UTF-8', error);
+      }
+    }
+    const asciiMatch = header.match(/filename="?([^";]+)"?/i);
+    return asciiMatch?.[1] ?? null;
+  };
+
+  const handleDownload = async () => {
+    try {
+      setDownloading(true);
+      const response = await api.get(`/cases/${caseId}/export`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const headerFilename = parseFilenameFromHeader(response.headers['content-disposition']);
+      const resolvedFileName = headerFilename && headerFilename.trim().length > 0
+        ? headerFilename
+        : buildFallbackPdfFileName();
+      link.download = resolvedFileName.endsWith('.pdf') ? resolvedFileName : `${resolvedFileName}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('No se pudo descargar el PDF del legajo', error);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleZipDownload = async () => {
+    try {
+      setZipDownloading(true);
+      const response = await api.get(`/cases/${caseId}/export-zip`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const headerFilename = parseFilenameFromHeader(response.headers['content-disposition']);
+      const resolvedFileName = headerFilename && headerFilename.trim().length > 0
+        ? headerFilename
+        : buildFallbackZipFileName();
+      link.download = resolvedFileName.endsWith('.zip') ? resolvedFileName : `${resolvedFileName}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('No se pudo descargar el ZIP del legajo', error);
+    } finally {
+      setZipDownloading(false);
+    }
+  };
+
   return (
     <div className="page case-detail">
-      <div className="page-header">
-        <div>
-          <h2>{(personaFullName || 'Caso sin persona asociada').toUpperCase()}</h2>
-          {persona?.identityNumber && (
-            <p>
-              Documento: {persona.documentType ?? 'S/D'} {persona.identityNumber}
-            </p>
-          )}
-          {numeroCausa && <p>Expediente: {numeroCausa}</p>}
-        </div>
-        <div className="case-detail__header-actions">
+      <div className="page-header case-detail__page-header">
+        <div className="case-detail__header-actions" style={{ justifyContent: 'space-between' }}>
           <button className="btn ghost" type="button" onClick={() => navigate('/cases')}>
             Volver
           </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn ghost" type="button" onClick={handleDownload} disabled={downloading}>
+              {downloading ? 'Generando…' : 'Descargar PDF'}
+            </button>
+            <button className="btn ghost" type="button" onClick={handleZipDownload} disabled={zipDownloading}>
+              {zipDownloading ? 'Armando ZIP…' : 'Descargar ZIP'}
+            </button>
+          </div>
+        </div>
+        <div className="case-detail__title-block">
+          <p className="case-detail__subtitle">Detalle del caso</p>
+          <h2>{(personaFullName || 'Caso sin persona asociada').toUpperCase()}</h2>
+          <p className="case-detail__meta-line">
+            {numeroCausa ? `Expediente ${numeroCausa}` : 'Sin expediente registrado'}
+          </p>
         </div>
       </div>
-
-      <div className={`case-detail__alert case-detail__alert--${statusClass}`}>
-        <span className="case-detail__alert-label">{statusLabel}</span>
-        <p>{statusDescription(caseRecord.estadoRequerimiento)}</p>
-      </div>
-
-      <section className="case-detail__hero card">
-        {primaryPhoto ? (
-          <figure className="case-detail__photo">
-            <img src={primaryPhoto.url} alt={primaryPhoto.description ?? 'Foto principal'} />
-            <figcaption>Foto principal del legajo</figcaption>
-          </figure>
-        ) : (
-          <div className="case-detail__photo case-detail__photo--placeholder">
-            <span>Sin foto principal</span>
-          </div>
-        )}
-        <div className="case-detail__summary">
-          <div className="case-detail__badges">
-            {delito && <span className="case-badge case-badge--delito">{delito}</span>}
-            {caratula && <span className="case-badge">Carátula: {caratula}</span>}
-            {fuerza && <span className="case-badge">Fuerza: {fuerza}</span>}
-            {jurisdiccion && <span className="case-badge">Jurisdicción: {jurisdiccion}</span>}
-            {fechaHecho && <span className="case-badge">Fecha del hecho: {fechaHecho}</span>}
-            {caseRecord.recompensa === 'SI' && rewardAmount && (
-              <span className="case-badge case-badge--reward">Recompensa: {rewardAmount}</span>
+      <section className="case-detail__resume card">
+        <div className="case-detail__resume-layout">
+          <aside className="case-detail__sidebar">
+            {primaryPhoto ? (
+              <figure className="case-detail__portrait">
+                <img
+                  src={resolveAssetUrl(primaryPhoto.url)}
+                  alt={primaryPhoto.description ?? 'Foto principal'}
+                />
+                {primaryPhoto.description && <figcaption>{primaryPhoto.description}</figcaption>}
+              </figure>
+            ) : (
+              <div className="case-detail__portrait case-detail__portrait--placeholder">
+                <span>Sin foto principal</span>
+              </div>
             )}
+
+            {hasContactInfo && (
+              <div className="case-detail__contact">
+                <h3>Contacto</h3>
+                {phoneList.length > 0 && (
+                  <div className="case-detail__contact-group">
+                    <span>Teléfonos</span>
+                    <ul>
+                      {phoneList.map((phone, index) => (
+                        <li key={`phone-${index}`}>{phone}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {emailList.length > 0 && (
+                  <div className="case-detail__contact-group">
+                    <span>Emails</span>
+                    <ul>
+                      {emailList.map((email, index) => (
+                        <li key={`email-${index}`}>{email}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {socialList.length > 0 && (
+                  <div className="case-detail__contact-group">
+                    <span>Redes</span>
+                    <ul>
+                      {socialList.map((social, index) => (
+                        <li key={`social-${index}`}>{social}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </aside>
+
+          <div className="case-detail__main">
+            <div className="case-detail__status-row">
+              <span className={`case-detail__status-chip case-detail__status-chip--${statusClass}`}>
+                {statusLabel}
+              </span>
+              {hasReward && (
+                <span className="case-detail__status-chip case-detail__status-chip--reward">
+                  {rewardAmountValue ? `Recompensa ${rewardAmountValue}` : 'Recompensa sin monto confirmado'}
+                </span>
+              )}
+            </div>
+
+            <div className="case-detail__resume-grid">
+              {personalHighlights.length > 0 && (
+                <div className="case-detail__info-group">
+                  <h3>Datos personales</h3>
+                  <dl className="case-detail__list">
+                    {personalHighlights.map((item) => (
+                      <div key={item.label}>
+                        <dt>{item.label}</dt>
+                        <dd>{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {personaNotes && (
+                    <div className="case-detail__notes">
+                      <span>Notas</span>
+                      <p>{personaNotes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {caseHighlights.length > 0 && (
+                <div className="case-detail__info-group">
+                  <h3>Resumen del caso</h3>
+                  <dl className="case-detail__list">
+                    {caseHighlights.map((item) => (
+                      <div key={item.label}>
+                        <dt>{item.label}</dt>
+                        <dd>{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+            </div>
+
+            <dl className="case-detail__timestamps case-detail__timestamps--inline">
+              <div>
+                <dt>Creado</dt>
+                <dd>{createdAt}</dd>
+              </div>
+              <div>
+                <dt>Actualizado</dt>
+                <dd>{updatedAt}</dd>
+              </div>
+            </dl>
           </div>
-          <dl className="case-detail__timestamps">
-            <div>
-              <dt>Creado</dt>
-              <dd>{createdAt}</dd>
-            </div>
-            <div>
-              <dt>Actualizado</dt>
-              <dd>{updatedAt}</dd>
-            </div>
-          </dl>
         </div>
       </section>
-
-      <section className="case-detail__grid">
-        <div className="case-detail__section card">
-          <h3>Datos del caso</h3>
-          <dl className="case-detail__list">
-            {numeroCausa && (
-              <div>
-                <dt>Número de expediente</dt>
-                <dd>{numeroCausa}</dd>
-              </div>
-            )}
-            {juzgado && (
-              <div>
-                <dt>Juzgado interventor</dt>
-                <dd>{juzgado}</dd>
-              </div>
-            )}
-            {secretaria && (
-              <div>
-                <dt>Secretaría</dt>
-                <dd>{secretaria}</dd>
-              </div>
-            )}
-            {fiscalia && (
-              <div>
-                <dt>Fiscalía</dt>
-                <dd>{fiscalia}</dd>
-              </div>
-            )}
-            {caseRecord.recompensa === 'SI' && rewardAmount && (
-              <div>
-                <dt>Monto de recompensa</dt>
-                <dd>{rewardAmount}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-        <div className="case-detail__section card">
-          <h3>Datos personales</h3>
-          <dl className="case-detail__list">
-            {personaFullName && (
-              <div>
-                <dt>Nombre completo</dt>
-                <dd>{personaFullName}</dd>
-              </div>
-            )}
-            {birthdateLabel && (
-              <div>
-                <dt>Fecha de nacimiento</dt>
-                <dd>{birthdateLabel}</dd>
-              </div>
-            )}
-            {nationalityText && (
-              <div>
-                <dt>Nacionalidad</dt>
-                <dd>{nationalityText}</dd>
-              </div>
-            )}
-            {address && (
-              <div>
-                <dt>Domicilio</dt>
-                <dd>{address}</dd>
-              </div>
-            )}
-            {persona?.notes && sanitizeValue(persona.notes) && (
-              <div>
-                <dt>Notas</dt>
-                <dd>{persona.notes}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-      </section>
-
-      {(phoneList.length > 0 || emailList.length > 0 || socialList.length > 0) && (
-        <section className="case-detail__section card">
-          <h3>Contactos</h3>
-          <ul className="case-detail__list case-detail__list--plain">
-            {phoneList.length > 0 && <li>Teléfonos: {phoneList.join(' · ')}</li>}
-            {emailList.length > 0 && <li>Emails: {emailList.join(' · ')}</li>}
-            {socialList.length > 0 && <li>Redes: {socialList.join(' · ')}</li>}
-          </ul>
-        </section>
-      )}
 
       {additionalInfo.length > 0 && (
         <section className="case-detail__section card">
@@ -337,7 +539,10 @@ const CaseDetailPage = () => {
             <div className="case-detail__gallery">
               {otherPhotos.map((photo) => (
                 <figure key={photo.id}>
-                  <img src={photo.url} alt={photo.description ?? 'Foto del caso'} />
+                  <img
+                    src={resolveAssetUrl(photo.url)}
+                    alt={photo.description ?? 'Foto del caso'}
+                  />
                   {photo.description && <figcaption>{photo.description}</figcaption>}
                 </figure>
               ))}
@@ -351,7 +556,7 @@ const CaseDetailPage = () => {
             <ul className="case-detail__documents">
               {caseRecord.documents.map((doc) => (
                 <li key={doc.id}>
-                  <a href={doc.url} target="_blank" rel="noreferrer">
+                  <a href={resolveAssetUrl(doc.url)} target="_blank" rel="noreferrer">
                     {doc.description ?? doc.originalName}
                   </a>
                   <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>

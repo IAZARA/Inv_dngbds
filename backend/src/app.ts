@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import type { HelmetOptions } from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/error-handler';
 import { apiRouter } from './routes';
@@ -9,7 +10,11 @@ import { uploadsStaticPath } from './middleware/uploads';
 export const createApp = () => {
   const app = express();
 
-  app.use(helmet());
+  const helmetOptions: HelmetOptions = {
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  };
+
+  app.use(helmet(helmetOptions));
   app.use(cors());
   app.use(express.json({ limit: '2mb' }));
   app.use(morgan('dev'));

@@ -10,6 +10,7 @@ export const sexOptions = ['MASCULINO', 'FEMENINO', 'OTRO'] as const;
 export const documentTypeOptions = ['DNI', 'PASAPORTE', 'CEDULA_IDENTIDAD', 'OTRO'] as const;
 export const jurisdiccionOptions = ['FEDERAL', 'PROVINCIAL', 'SIN_DATO'] as const;
 export const recompensaOptions = ['SI', 'NO', 'SIN_DATO'] as const;
+export const rewardAmountStatusOptions = ['KNOWN', 'UNKNOWN'] as const;
 
 export const defaultPhotoDescription = 'Foto del investigado';
 export const defaultDocumentDescription = 'Documento adjunto';

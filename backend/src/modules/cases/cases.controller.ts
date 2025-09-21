@@ -8,6 +8,9 @@ import {
   addCasePhoto,
   createCase,
   deleteCase,
+  generateCasePdf,
+  generateCaseZip,
+  exportCasesToExcel,
   getCaseById,
   listCases,
   removeCaseMedia,
@@ -30,6 +33,44 @@ export const getCaseHandler = async (req: Request, res: Response, next: NextFunc
   try {
     const caseData = await getCaseById(req.params.id);
     res.json({ case: caseData });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const exportCasePdfHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { buffer, fileName } = await generateCasePdf(req.params.id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const exportCaseZipHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { buffer, fileName } = await generateCaseZip(req.params.id);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const exportCasesExcelHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? (req.body.ids as string[]) : [];
+    if (ids.length === 0) {
+      throw new AppError('Debe seleccionar al menos un caso para exportar', 400, true);
+    }
+    const buffer = await exportCasesToExcel(ids);
+    const filename = `casos_${Date.now()}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
   } catch (error) {
     next(error);
   }

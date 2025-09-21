@@ -9,6 +9,7 @@ const sexOptions = ['MASCULINO', 'FEMENINO', 'OTRO'] as const;
 const documentTypeOptions = ['DNI', 'PASAPORTE', 'CEDULA_IDENTIDAD', 'OTRO'] as const;
 const jurisdiccionOptions = ['FEDERAL', 'PROVINCIAL', 'SIN_DATO'] as const;
 const recompensaOptions = ['SI', 'NO', 'SIN_DATO'] as const;
+const rewardAmountStatusOptions = ['KNOWN', 'UNKNOWN'] as const;
 const photoDescriptionLimit = 200;
 const ADDITIONAL_INFO_LABEL_LIMIT = 120;
 const ADDITIONAL_INFO_VALUE_LIMIT = 1000;
@@ -73,10 +74,13 @@ export const createCaseSchema = z.object({
   estadoRequerimiento: z.enum(estadoRequerimientoOptions),
   fuerzaAsignada: z.enum(fuerzaIntervinienteOptions).default('S/D'),
   recompensa: z.enum(recompensaOptions).default('SIN_DATO'),
+  rewardAmountStatus: z.enum(rewardAmountStatusOptions).default('KNOWN'),
   rewardAmount: z
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, 'Monto inválido (hasta 2 decimales)')
-    .optional(),
+    .optional()
+    .or(z.literal(''))
+    .or(z.null()),
   persona: casePersonSchema,
   additionalInfo: z.array(additionalInfoItemSchema).optional()
 });
@@ -96,10 +100,13 @@ export const updateCaseSchema = z.object({
   estadoRequerimiento: z.enum(estadoRequerimientoOptions).optional(),
   fuerzaAsignada: z.enum(fuerzaIntervinienteOptions).optional(),
   recompensa: z.enum(recompensaOptions).optional(),
+  rewardAmountStatus: z.enum(rewardAmountStatusOptions).optional(),
   rewardAmount: z
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, 'Monto inválido (hasta 2 decimales)')
-    .optional(),
+    .optional()
+    .or(z.literal(''))
+    .or(z.null()),
   persona: casePersonSchema.partial().optional(),
   additionalInfo: z.array(additionalInfoItemSchema).optional()
 });
@@ -108,8 +115,24 @@ export const mediaDescriptionSchema = z.object({
   description: z.string().max(photoDescriptionLimit)
 });
 
-const recompensaDependentValidation = (data: { recompensa?: typeof recompensaOptions[number]; rewardAmount?: string }) => {
-  if (data.recompensa === 'SI' && (!data.rewardAmount || data.rewardAmount.trim().length === 0)) {
+const recompensaDependentValidation = (data: {
+  recompensa?: (typeof recompensaOptions)[number];
+  rewardAmountStatus?: (typeof rewardAmountStatusOptions)[number];
+  rewardAmount?: string | null;
+}) => {
+  if (data.recompensa !== 'SI') {
+    return null;
+  }
+
+  if (data.rewardAmountStatus === 'UNKNOWN') {
+    return null;
+  }
+
+  if (data.rewardAmount === null) {
+    return null;
+  }
+
+  if (!data.rewardAmount || data.rewardAmount.trim().length === 0) {
     return 'Ingresa el monto de recompensa';
   }
   return null;

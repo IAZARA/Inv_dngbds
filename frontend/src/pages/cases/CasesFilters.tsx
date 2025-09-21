@@ -7,7 +7,7 @@ import {
   jurisdiccionOptions
 } from './constants';
 import type { CaseFormValues } from './formSchema';
-import { formatOptionText, translateEstado } from './helpers';
+import { formatOptionText, translateEstado, translateFuerza } from './helpers';
 
 type JurisdiccionFilter = 'TODAS' | CaseFormValues['jurisdiccion'];
 type FuerzaFilter = 'TODAS' | CaseFormValues['fuerzaAsignada'];
@@ -98,7 +98,7 @@ const CasesFilters = ({
             <option value="TODAS">Todas las fuerzas</option>
             {fuerzaIntervinienteOptions.map((option) => (
               <option key={option} value={option}>
-                {option}
+                {translateFuerza(option)}
               </option>
             ))}
           </select>
