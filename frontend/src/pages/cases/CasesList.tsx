@@ -87,6 +87,23 @@ const CasesList = ({
     return trimmed;
   };
 
+  const formatFuerzaName = (sigla?: string | null) => {
+    if (!sigla) return null;
+    const normalized = sigla.trim().toUpperCase();
+    switch (normalized) {
+      case 'GNA':
+        return 'Gendarmería Nacional';
+      case 'PFA':
+        return 'Policía Federal';
+      case 'PSA':
+        return 'Policía de Seguridad Aeroportuaria';
+      case 'PNA':
+        return 'Prefectura Naval';
+      default:
+        return sigla;
+    }
+  };
+
   const statusVariant = (estado: EstadoRequerimiento) => {
     switch (estado) {
       case 'CAPTURA_VIGENTE':
@@ -169,7 +186,7 @@ const CasesList = ({
           const personaFullName = [item.persona?.firstName, item.persona?.lastName]
             .filter(Boolean)
             .join(' ');
-          const fuerza = sanitizeValue(item.fuerzaAsignada ?? 'S/D');
+          const fuerza = formatFuerzaName(item.fuerzaAsignada) ?? sanitizeValue(item.fuerzaAsignada ?? 'S/D');
           const formattedJurisdiccion = formatOptionText(item.jurisdiccion);
           const jurisdiccion = formattedJurisdiccion === 'Sin dato'
             ? null

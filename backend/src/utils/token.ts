@@ -9,5 +9,5 @@ interface TokenPayload {
 }
 
 export const generateAccessToken = (payload: TokenPayload) => {
-  return jwt.sign(payload, env.jwtSecret, { expiresIn: '15m' });
+  return jwt.sign(payload, env.jwtSecret, { expiresIn: '30m' });
 };

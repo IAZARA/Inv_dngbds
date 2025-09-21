@@ -247,6 +247,9 @@ const CasesPage = () => {
         <div>
           <h2>Casos</h2>
           <p>Gestiona los expedientes de investigación y los datos asociados a cada persona.</p>
+          <p className="text-sm text-gray-600" style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            Los casos se encuentran ordenados por defecto según la prioridad establecida por el Comando Unificado Federal de Recaptura de Evadidos.
+          </p>
         </div>
         <div className="case-toolbar">
           <button className="btn ghost" type="button" onClick={toggleSelectMode} disabled={!canEdit}>
