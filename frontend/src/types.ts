@@ -96,6 +96,15 @@ export interface CaseSocialNetworkEntry {
   handle: string;
 }
 
+export interface CaseAddressEntry {
+  street: string;
+  streetNumber: string;
+  province: string;
+  locality: string;
+  reference: string;
+  isPrincipal: boolean;
+}
+
 export interface CasePerson {
   id: string;
   firstName: string;
@@ -111,6 +120,7 @@ export interface CasePerson {
   emails?: CaseContactValueEntry[];
   phones?: CaseContactValueEntry[];
   socialNetworks?: CaseSocialNetworkEntry[];
+  addresses?: CaseAddressEntry[];
   notes?: string | null;
   nationality: 'ARGENTINA' | 'OTRO';
   otherNationality?: string | null;

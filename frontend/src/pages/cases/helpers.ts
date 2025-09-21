@@ -56,6 +56,64 @@ export const toSocialEntries = (
   return list;
 };
 
+type AddressEntry = {
+  street?: string | null;
+  streetNumber?: string | null;
+  province?: string | null;
+  locality?: string | null;
+  reference?: string | null;
+  isPrincipal?: boolean | null;
+};
+
+export const toAddressEntries = (
+  addresses?: Array<AddressEntry | null> | null,
+  fallbackAddress?: {
+    street?: string | null;
+    streetNumber?: string | null;
+    province?: string | null;
+    locality?: string | null;
+    reference?: string | null;
+  } | null
+): Array<{ street: string; streetNumber: string; province: string; locality: string; reference: string; isPrincipal: boolean }> => {
+  const list: Array<{ street: string; streetNumber: string; province: string; locality: string; reference: string; isPrincipal: boolean }> = [];
+
+  (addresses ?? []).forEach((entry) => {
+    if (!entry) return;
+    list.push({
+      street: entry.street ?? '',
+      streetNumber: entry.streetNumber ?? '',
+      province: entry.province ?? '',
+      locality: entry.locality ?? '',
+      reference: entry.reference ?? '',
+      isPrincipal: entry.isPrincipal ?? false
+    });
+  });
+
+  // Si no hay direcciones en el array pero hay datos de dirección en los campos legacy, agregar como dirección principal
+  if (list.length === 0 && fallbackAddress) {
+    const hasAnyAddressData = fallbackAddress.street || fallbackAddress.streetNumber ||
+                             fallbackAddress.province || fallbackAddress.locality ||
+                             fallbackAddress.reference;
+    if (hasAnyAddressData) {
+      list.push({
+        street: fallbackAddress.street ?? '',
+        streetNumber: fallbackAddress.streetNumber ?? '',
+        province: fallbackAddress.province ?? '',
+        locality: fallbackAddress.locality ?? '',
+        reference: fallbackAddress.reference ?? '',
+        isPrincipal: true
+      });
+    }
+  }
+
+  // Si no hay direcciones, agregar una dirección vacía
+  if (list.length === 0) {
+    list.push({ street: '', streetNumber: '', province: '', locality: '', reference: '', isPrincipal: true });
+  }
+
+  return list;
+};
+
 export const mapCaseToForm = (record: CaseRecord): CaseFormValues => ({
   numeroCausa: record.numeroCausa ?? '',
   caratula: record.caratula ?? '',
@@ -83,13 +141,15 @@ export const mapCaseToForm = (record: CaseRecord): CaseFormValues => ({
     emails: toValueEntries(record.persona?.emails ?? null, record.persona?.email ?? null),
     phones: toValueEntries(record.persona?.phones ?? null, record.persona?.phone ?? null),
     socialNetworks: toSocialEntries(record.persona?.socialNetworks ?? null),
+    addresses: toAddressEntries(record.persona?.addresses ?? null, {
+      street: record.persona?.street,
+      streetNumber: record.persona?.streetNumber,
+      province: record.persona?.province,
+      locality: record.persona?.locality,
+      reference: record.persona?.reference
+    }),
     nationality: record.persona?.nationality ?? 'ARGENTINA',
-    otherNationality: record.persona?.otherNationality ?? '',
-    street: record.persona?.street ?? '',
-    streetNumber: record.persona?.streetNumber ?? '',
-    province: record.persona?.province ?? '',
-    locality: record.persona?.locality ?? '',
-    reference: record.persona?.reference ?? ''
+    otherNationality: record.persona?.otherNationality ?? ''
   },
   additionalInfo:
     record.additionalInfo?.map((entry) => ({
@@ -132,10 +192,39 @@ const normalizeSocialNetworkEntries = (
     .filter((entry) => entry.network.length > 0 && entry.handle.length > 0);
 };
 
+type AddressFormEntry = {
+  street?: string;
+  streetNumber?: string;
+  province?: string;
+  locality?: string;
+  reference?: string;
+  isPrincipal?: boolean;
+};
+
+const normalizeAddressEntries = (entries: Array<AddressFormEntry>) => {
+  const filtered = entries.filter((entry) =>
+    (entry.street ?? '').trim().length > 0 ||
+    (entry.streetNumber ?? '').trim().length > 0 ||
+    (entry.province ?? '').trim().length > 0 ||
+    (entry.locality ?? '').trim().length > 0 ||
+    (entry.reference ?? '').trim().length > 0
+  );
+
+  return filtered.map((entry) => ({
+    street: (entry.street ?? '').trim().slice(0, 120),
+    streetNumber: (entry.streetNumber ?? '').trim().slice(0, 20),
+    province: (entry.province ?? '').trim().slice(0, 120),
+    locality: (entry.locality ?? '').trim().slice(0, 120),
+    reference: (entry.reference ?? '').trim().slice(0, 255),
+    isPrincipal: entry.isPrincipal ?? false
+  }));
+};
+
 export const buildPayload = (values: CaseFormValues) => {
   const normalizedEmails = normalizeEmailEntries(values.persona.emails);
   const normalizedPhones = normalizePhoneEntries(values.persona.phones);
   const normalizedSocialNetworks = normalizeSocialNetworkEntries(values.persona.socialNetworks);
+  const normalizedAddresses = normalizeAddressEntries(values.persona.addresses);
 
   return {
     numeroCausa: blankToUndefined(values.numeroCausa),
@@ -169,17 +258,19 @@ export const buildPayload = (values: CaseFormValues) => {
       emails: normalizedEmails,
       phones: normalizedPhones,
       socialNetworks: normalizedSocialNetworks,
-      notes: blankToUndefined(values.persona.notes),
+      addresses: normalizedAddresses,
+      notes: values.persona.notes?.trim() || "",
       nationality: values.persona.nationality,
       otherNationality:
         values.persona.nationality === 'OTRO'
           ? blankToUndefined(values.persona.otherNationality)
           : undefined,
-      street: blankToUndefined(values.persona.street),
-      streetNumber: blankToUndefined(values.persona.streetNumber),
-      province: blankToUndefined(values.persona.province),
-      locality: blankToUndefined(values.persona.locality),
-      reference: blankToUndefined(values.persona.reference)
+      // Mantener campos legacy para compatibilidad - usar la dirección principal
+      street: normalizedAddresses.find(addr => addr.isPrincipal)?.street || normalizedAddresses[0]?.street || undefined,
+      streetNumber: normalizedAddresses.find(addr => addr.isPrincipal)?.streetNumber || normalizedAddresses[0]?.streetNumber || undefined,
+      province: normalizedAddresses.find(addr => addr.isPrincipal)?.province || normalizedAddresses[0]?.province || undefined,
+      locality: normalizedAddresses.find(addr => addr.isPrincipal)?.locality || normalizedAddresses[0]?.locality || undefined,
+      reference: normalizedAddresses.find(addr => addr.isPrincipal)?.reference || normalizedAddresses[0]?.reference || undefined
     },
     additionalInfo: normalizeAdditionalInfo(values.additionalInfo)
   };
@@ -197,6 +288,24 @@ export const computeAge = (dateString?: string) => {
 
 export const formatPersonSummary = (persona: CaseRecord['persona']) => {
   if (!persona) return 'Sin persona asociada';
+
+  if (persona.addresses && persona.addresses.length > 0) {
+    const principalAddress = persona.addresses.find(addr => addr.isPrincipal) || persona.addresses[0];
+    const pieces: string[] = [];
+
+    if (principalAddress.street || principalAddress.streetNumber) {
+      pieces.push(`${principalAddress.street ?? 'S/D'} ${principalAddress.streetNumber ?? ''}`.trim());
+    }
+    if (principalAddress.locality || principalAddress.province) {
+      pieces.push([principalAddress.locality, principalAddress.province].filter(Boolean).join(', '));
+    }
+    if (principalAddress.reference) {
+      pieces.push(`Ref.: ${principalAddress.reference}`);
+    }
+
+    return pieces.length > 0 ? pieces.join(' · ') : 'Sin domicilio informado';
+  }
+
   const pieces: string[] = [];
   if (persona.street || persona.streetNumber) {
     pieces.push(`${persona.street ?? 'S/D'} ${persona.streetNumber ?? ''}`.trim());

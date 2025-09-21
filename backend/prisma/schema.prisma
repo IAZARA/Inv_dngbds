@@ -91,6 +91,7 @@ model Person {
   emails           Json?             @map("emails")
   phones           Json?             @map("telefonos")
   socialNetworks   Json?             @map("redes_sociales")
+  addressesData    Json?             @map("direcciones")
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   records          SourceRecord[]

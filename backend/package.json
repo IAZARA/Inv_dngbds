@@ -10,7 +10,9 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
-    "db:seed": "ts-node prisma/seed.ts"
+    "db:seed": "ts-node prisma/seed.ts",
+    "import:fugitivos": "ts-node -r dotenv/config scripts/import-fugitivos.ts dotenv_config_path=.env.railway",
+    "migrate:legacy-addresses": "ts-node -r dotenv/config scripts/migrate-legacy-addresses.ts dotenv_config_path=.env.railway"
   },
   "author": "",
   "license": "MIT",
@@ -39,6 +41,7 @@
     "@types/morgan": "^1.9.7",
     "@types/node": "^20.11.30",
     "@types/pdfkit": "^0.17.3",
+    "csv-parser": "^3.2.0",
     "prisma": "^5.12.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",

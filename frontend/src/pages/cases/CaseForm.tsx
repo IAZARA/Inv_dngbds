@@ -201,6 +201,15 @@ const CaseForm = ({
     name: 'additionalInfo'
   });
 
+  const {
+    fields: addressFields,
+    append: appendAddress,
+    remove: removeAddress
+  } = useFieldArray({
+    control,
+    name: 'persona.addresses'
+  });
+
   useEffect(() => {
     if (editingCase) {
       reset(mapCaseToForm(editingCase));
@@ -526,13 +535,9 @@ const CaseForm = ({
             errors.persona?.socialNetworks.some((entry) => !!entry)) ||
           !!errors.persona?.notes;
       case 'domicilio':
-        return !!(
-          errors.persona?.street ||
-          errors.persona?.streetNumber ||
-          errors.persona?.province ||
-          errors.persona?.locality ||
-          errors.persona?.reference
-        );
+        return Array.isArray(errors.persona?.addresses)
+          ? errors.persona?.addresses.some((entry) => !!entry)
+          : false;
       case 'judicial':
         return !!(
           errors.numeroCausa ||
@@ -882,34 +887,101 @@ const CaseForm = ({
         );
       case 'domicilio':
         return (
-          <div className="form-grid">
-            <label>
-              Calle
-              <input type="text" {...register('persona.street')} disabled={!canEdit} />
-              {errors.persona?.street && <span className="error">{errors.persona.street.message}</span>}
-            </label>
-            <label>
-              Número
-              <input type="text" {...register('persona.streetNumber')} disabled={!canEdit} />
-              {errors.persona?.streetNumber && (
-                <span className="error">{errors.persona.streetNumber.message}</span>
-              )}
-            </label>
-            <label>
-              Provincia
-              <input type="text" {...register('persona.province')} disabled={!canEdit} />
-              {errors.persona?.province && <span className="error">{errors.persona.province.message}</span>}
-            </label>
-            <label>
-              Localidad
-              <input type="text" {...register('persona.locality')} disabled={!canEdit} />
-              {errors.persona?.locality && <span className="error">{errors.persona.locality.message}</span>}
-            </label>
-            <label className="full">
-              Referencia
-              <textarea rows={3} {...register('persona.reference')} disabled={!canEdit} />
-              {errors.persona?.reference && <span className="error">{errors.persona.reference.message}</span>}
-            </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <FieldArraySection
+              title="Domicilios"
+              addLabel="+ Agregar domicilio"
+              canEdit={canEdit}
+              onAdd={() => appendAddress({ street: '', streetNumber: '', province: '', locality: '', reference: '', isPrincipal: false })}
+              emptyMessage="No hay domicilios cargados."
+              itemsLength={addressFields.length}
+            >
+              {addressFields.map((field, index) => (
+                <FieldArrayItem
+                  key={field.id}
+                  canEdit={canEdit}
+                  onRemove={() => removeAddress(index)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <label className="checkbox-field">
+                      <input
+                        type="checkbox"
+                        {...register(`persona.addresses.${index}.isPrincipal` as const)}
+                        disabled={!canEdit}
+                      />
+                      <span>Domicilio principal</span>
+                    </label>
+                  </div>
+                  <div className="form-grid" style={{ gap: '1rem' }}>
+                    <label>
+                      Calle
+                      <input
+                        type="text"
+                        {...register(`persona.addresses.${index}.street` as const)}
+                        disabled={!canEdit}
+                      />
+                      {errors.persona?.addresses?.[index]?.street && (
+                        <span className="error">
+                          {errors.persona.addresses[index]?.street?.message}
+                        </span>
+                      )}
+                    </label>
+                    <label>
+                      Número
+                      <input
+                        type="text"
+                        {...register(`persona.addresses.${index}.streetNumber` as const)}
+                        disabled={!canEdit}
+                      />
+                      {errors.persona?.addresses?.[index]?.streetNumber && (
+                        <span className="error">
+                          {errors.persona.addresses[index]?.streetNumber?.message}
+                        </span>
+                      )}
+                    </label>
+                    <label>
+                      Provincia
+                      <input
+                        type="text"
+                        {...register(`persona.addresses.${index}.province` as const)}
+                        disabled={!canEdit}
+                      />
+                      {errors.persona?.addresses?.[index]?.province && (
+                        <span className="error">
+                          {errors.persona.addresses[index]?.province?.message}
+                        </span>
+                      )}
+                    </label>
+                    <label>
+                      Localidad
+                      <input
+                        type="text"
+                        {...register(`persona.addresses.${index}.locality` as const)}
+                        disabled={!canEdit}
+                      />
+                      {errors.persona?.addresses?.[index]?.locality && (
+                        <span className="error">
+                          {errors.persona.addresses[index]?.locality?.message}
+                        </span>
+                      )}
+                    </label>
+                    <label className="full">
+                      Referencia
+                      <textarea
+                        rows={3}
+                        {...register(`persona.addresses.${index}.reference` as const)}
+                        disabled={!canEdit}
+                      />
+                      {errors.persona?.addresses?.[index]?.reference && (
+                        <span className="error">
+                          {errors.persona.addresses[index]?.reference?.message}
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                </FieldArrayItem>
+              ))}
+            </FieldArraySection>
           </div>
         );
       case 'judicial':

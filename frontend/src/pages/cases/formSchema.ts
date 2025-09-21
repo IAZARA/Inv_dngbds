@@ -35,6 +35,15 @@ const socialNetworkEntrySchema = z.object({
   handle: optionalText(120)
 });
 
+const addressEntrySchema = z.object({
+  street: optionalText(120),
+  streetNumber: optionalText(20),
+  province: optionalText(120),
+  locality: optionalText(120),
+  reference: optionalText(255),
+  isPrincipal: z.boolean().default(false)
+});
+
 const casePersonSchema = z.object({
   personId: z.string().uuid().optional(),
   firstName: z.string().min(1, 'Nombre requerido'),
@@ -51,13 +60,9 @@ const casePersonSchema = z.object({
   emails: z.array(emailEntrySchema).default([]),
   phones: z.array(phoneEntrySchema).default([]),
   socialNetworks: z.array(socialNetworkEntrySchema).default([]),
+  addresses: z.array(addressEntrySchema).default([]),
   nationality: z.enum(nationalityOptions).default('ARGENTINA'),
-  otherNationality: optionalText(120),
-  street: optionalText(120),
-  streetNumber: optionalText(20),
-  province: optionalText(120),
-  locality: optionalText(120),
-  reference: optionalText(255)
+  otherNationality: optionalText(120)
 });
 
 export const caseFormSchema = z
@@ -139,13 +144,9 @@ export const defaultValues: CaseFormValues = {
     emails: [{ value: '' }],
     phones: [{ value: '' }],
     socialNetworks: [{ network: '', handle: '' }],
+    addresses: [{ street: '', streetNumber: '', province: '', locality: '', reference: '', isPrincipal: true }],
     nationality: 'ARGENTINA',
-    otherNationality: '',
-    street: '',
-    streetNumber: '',
-    province: '',
-    locality: '',
-    reference: ''
+    otherNationality: ''
   },
   additionalInfo: []
 };

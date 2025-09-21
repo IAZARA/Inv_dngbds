@@ -32,6 +32,15 @@ const socialNetworkEntrySchema = z.object({
   handle: z.string().trim().max(120).optional().or(z.literal(''))
 });
 
+const addressEntrySchema = z.object({
+  street: z.string().trim().max(120).optional().or(z.literal('')),
+  streetNumber: z.string().trim().max(20).optional().or(z.literal('')),
+  province: z.string().trim().max(120).optional().or(z.literal('')),
+  locality: z.string().trim().max(120).optional().or(z.literal('')),
+  reference: z.string().trim().max(255).optional().or(z.literal('')),
+  isPrincipal: z.boolean().default(false)
+});
+
 export const casePersonSchema = z.object({
   personId: z.string().uuid().optional(),
   firstName: z.string().min(1, 'Nombre requerido'),
@@ -56,7 +65,8 @@ export const casePersonSchema = z.object({
   reference: z.string().max(255).optional(),
   emails: z.array(emailEntrySchema).optional(),
   phones: z.array(phoneEntrySchema).optional(),
-  socialNetworks: z.array(socialNetworkEntrySchema).optional()
+  socialNetworks: z.array(socialNetworkEntrySchema).optional(),
+  addresses: z.array(addressEntrySchema).optional()
 });
 
 export const createCaseSchema = z.object({

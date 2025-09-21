@@ -55,6 +55,7 @@ const serializeMedia = (item: CaseWithRelations['media'][number]) => ({
 type AdditionalInfoItem = { label: string; value: string };
 type ContactValueEntry = { value: string };
 type SocialNetworkEntry = { network: string; handle: string };
+type AddressEntry = { street: string; streetNumber: string; province: string; locality: string; reference: string; isPrincipal: boolean };
 
 const ADDITIONAL_INFO_LABEL_LIMIT = 120;
 const ADDITIONAL_INFO_VALUE_LIMIT = 1000;
@@ -141,6 +142,38 @@ const sanitizeSocialNetworkEntries = (
   return sanitized;
 };
 
+const sanitizeAddressEntries = (
+  entries: Array<{ street?: string | null; streetNumber?: string | null; province?: string | null; locality?: string | null; reference?: string | null; isPrincipal?: boolean | null }> | undefined
+) => {
+  if (entries === undefined) {
+    return undefined;
+  }
+
+  const sanitized: AddressEntry[] = entries
+    .map((entry) => {
+      const street = (entry.street ?? '').trim();
+      const streetNumber = (entry.streetNumber ?? '').trim();
+      const province = (entry.province ?? '').trim();
+      const locality = (entry.locality ?? '').trim();
+      const reference = (entry.reference ?? '').trim();
+
+      // Solo incluir direcciones que tengan al menos un campo con contenido
+      if (!street && !streetNumber && !province && !locality && !reference) return null;
+
+      return {
+        street: street.slice(0, 120),
+        streetNumber: streetNumber.slice(0, 20),
+        province: province.slice(0, 120),
+        locality: locality.slice(0, 120),
+        reference: reference.slice(0, 255),
+        isPrincipal: entry.isPrincipal ?? false
+      };
+    })
+    .filter((entry): entry is AddressEntry => entry !== null);
+
+  return sanitized;
+};
+
 const parseContactValueEntries = (
   value: Prisma.JsonValue | null,
   maxLength: number
@@ -180,6 +213,37 @@ const parseSocialNetworkEntries = (value: Prisma.JsonValue | null): SocialNetwor
   return parsed;
 };
 
+const parseAddressEntries = (value: Prisma.JsonValue | null): AddressEntry[] => {
+  if (!value || !Array.isArray(value)) {
+    return [];
+  }
+
+  const parsed: AddressEntry[] = [];
+  value.forEach((item) => {
+    if (typeof item !== 'object' || item === null) return;
+    const candidate = item as Record<string, unknown>;
+    const street = typeof candidate.street === 'string' ? candidate.street.trim() : '';
+    const streetNumber = typeof candidate.streetNumber === 'string' ? candidate.streetNumber.trim() : '';
+    const province = typeof candidate.province === 'string' ? candidate.province.trim() : '';
+    const locality = typeof candidate.locality === 'string' ? candidate.locality.trim() : '';
+    const reference = typeof candidate.reference === 'string' ? candidate.reference.trim() : '';
+    const isPrincipal = typeof candidate.isPrincipal === 'boolean' ? candidate.isPrincipal : false;
+
+    // Solo incluir direcciones que tengan al menos un campo con contenido
+    if (!street && !streetNumber && !province && !locality && !reference) return;
+
+    parsed.push({
+      street: street.slice(0, 120),
+      streetNumber: streetNumber.slice(0, 20),
+      province: province.slice(0, 120),
+      locality: locality.slice(0, 120),
+      reference: reference.slice(0, 255),
+      isPrincipal
+    });
+  });
+  return parsed;
+};
+
 const serializeCase = (record: CaseWithRelations) => {
   const persona = record.personas[0];
   const rewardAmount = record.rewardAmount ? record.rewardAmount.toString() : null;
@@ -192,6 +256,7 @@ const serializeCase = (record: CaseWithRelations) => {
     ? parseContactValueEntries(persona.person.phones ?? null, CONTACT_PHONE_LIMIT)
     : [];
   const socialEntries = persona ? parseSocialNetworkEntries(persona.person.socialNetworks ?? null) : [];
+  const addressEntries = persona ? parseAddressEntries(persona.person.addressesData ?? null) : [];
   const primaryEmail = persona?.person.email ?? emailEntries[0]?.value ?? null;
   const primaryPhone = persona?.person.phone ?? phoneEntries[0]?.value ?? null;
   return {
@@ -229,6 +294,7 @@ const serializeCase = (record: CaseWithRelations) => {
           emails: emailEntries,
           phones: phoneEntries,
           socialNetworks: socialEntries,
+          addresses: addressEntries,
           notes: persona.person.notes ?? null,
           nationality: persona.person.nationality,
           otherNationality: persona.person.otherNationality ?? null,
@@ -305,6 +371,7 @@ const ensurePerson = async (
   const sanitizedEmailEntries = sanitizeValueEntries(input.emails, (value) => value.toLowerCase(), CONTACT_EMAIL_LIMIT);
   const sanitizedPhoneEntries = sanitizeValueEntries(input.phones, undefined, CONTACT_PHONE_LIMIT);
   const sanitizedSocialEntries = sanitizeSocialNetworkEntries(input.socialNetworks);
+  const sanitizedAddressEntries = sanitizeAddressEntries(input.addresses);
 
   const updateData: Prisma.PersonUpdateInput = {};
 
@@ -360,8 +427,29 @@ const ensurePerson = async (
     updateData.socialNetworks = sanitizedSocialEntries ?? [];
   }
 
+  if (input.addresses !== undefined) {
+    updateData.addressesData = sanitizedAddressEntries ?? [];
+
+    // Actualizar campos legacy usando la dirección principal
+    const principalAddress = (sanitizedAddressEntries ?? []).find(addr => addr.isPrincipal) || (sanitizedAddressEntries ?? [])[0];
+    if (principalAddress) {
+      updateData.street = principalAddress.street || null;
+      updateData.streetNumber = principalAddress.streetNumber || null;
+      updateData.province = principalAddress.province || null;
+      updateData.locality = principalAddress.locality || null;
+      updateData.reference = principalAddress.reference || null;
+    } else {
+      // Si no hay direcciones en el array, limpiar los campos legacy
+      updateData.street = null;
+      updateData.streetNumber = null;
+      updateData.province = null;
+      updateData.locality = null;
+      updateData.reference = null;
+    }
+  }
+
   if (input.notes !== undefined) {
-    updateData.notes = normalize(input.notes) ?? null;
+    updateData.notes = input.notes && input.notes.trim() ? input.notes.trim() : null;
   }
 
   if (input.nationality !== undefined) {
@@ -427,6 +515,10 @@ const ensurePerson = async (
       ? [{ value: phoneForCreate }]
       : [];
   const socialData = sanitizedSocialEntries !== undefined ? sanitizedSocialEntries : [];
+  const addressData = sanitizedAddressEntries !== undefined ? sanitizedAddressEntries : [];
+
+  // Si hay direcciones múltiples, usar la principal o la primera para los campos legacy
+  const principalAddress = addressData.find(addr => addr.isPrincipal) || addressData[0];
 
   const created = await tx.person.create({
     data: {
@@ -442,14 +534,16 @@ const ensurePerson = async (
       phone: phoneForCreate ?? null,
       phones: phonesData,
       socialNetworks: socialData,
+      addressesData: addressData,
       notes: normalize(input.notes),
       nationality: input.nationality ?? 'ARGENTINA',
       otherNationality: normalize(input.otherNationality),
-      street: normalize(input.street),
-      streetNumber: normalize(input.streetNumber),
-      province: normalize(input.province),
-      locality: normalize(input.locality),
-      reference: normalize(input.reference)
+      // Campos legacy para compatibilidad - usar la dirección principal
+      street: principalAddress?.street || normalize(input.street),
+      streetNumber: principalAddress?.streetNumber || normalize(input.streetNumber),
+      province: principalAddress?.province || normalize(input.province),
+      locality: principalAddress?.locality || normalize(input.locality),
+      reference: principalAddress?.reference || normalize(input.reference)
     }
   });
 
@@ -518,6 +612,32 @@ const summarizeAddress = (persona: ReturnType<typeof serializeCase>['persona']) 
     pieces.push(`Ref.: ${persona.reference}`);
   }
   return pieces.length > 0 ? pieces.join(' · ') : null;
+};
+
+const summarizeAllAddresses = (persona: ReturnType<typeof serializeCase>['persona']) => {
+  if (!persona) return null;
+
+  if (persona.addresses && persona.addresses.length > 0) {
+    return persona.addresses
+      .map((address) => {
+        const parts = [address.street, address.streetNumber, address.locality, address.province]
+          .filter(Boolean);
+        let formattedAddress = parts.join(', ');
+
+        if (address.isPrincipal) {
+          formattedAddress = `[PRINCIPAL] ${formattedAddress}`;
+        }
+
+        if (address.reference) {
+          formattedAddress += ` (Ref.: ${address.reference})`;
+        }
+
+        return formattedAddress;
+      })
+      .join(' | ');
+  }
+
+  return summarizeAddress(persona);
 };
 
 const removeDiacritics = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -731,7 +851,7 @@ export const generateCasePdf = async (id: string) => {
       { label: 'Sexo', value: persona.sex ?? undefined },
       { label: 'Fecha de nacimiento', value: formatDate(persona.birthdate ?? null) },
       { label: 'Edad', value: persona.age ? `${persona.age} años` : undefined },
-      { label: 'Domicilio', value: summarizeAddress(persona) },
+      { label: 'Domicilio', value: summarizeAllAddresses(persona) },
       { label: 'Teléfonos', value: phones || null },
       { label: 'Emails', value: emails || null },
       { label: 'Notas', value: persona.notes ?? undefined }
@@ -841,7 +961,7 @@ export const exportCasesToExcel = async (ids: string[]) => {
       sexo: persona?.sex ?? '—',
       nacimiento: persona?.birthdate ? new Date(persona.birthdate).toLocaleDateString() : '—',
       edad: persona?.age ?? (persona?.birthdate ? computeAge(new Date(persona.birthdate)) : '—'),
-      domicilio: summarizeAddress(persona) ?? '—',
+      domicilio: summarizeAllAddresses(persona) ?? '—',
       telefonos: phones || '—',
       emails: emails || '—',
       notas: persona?.notes ?? '—',

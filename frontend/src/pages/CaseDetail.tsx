@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, resolveAssetUrl } from '../lib/api';
-import type { CaseMediaItem, CaseRecord, EstadoRequerimiento } from '../types';
+import type { CaseAddressEntry, CaseMediaItem, CaseRecord, EstadoRequerimiento } from '../types';
 import {
   collectContactList,
   collectSocialList,
@@ -144,25 +144,42 @@ const CaseDetailPage = () => {
       ? 'Argentina'
       : null;
 
-  const addressPieces: string[] = [];
-  if (sanitizeValue(persona?.street) || sanitizeValue(persona?.streetNumber)) {
-    addressPieces.push(
-      [sanitizeValue(persona?.street) ?? '', sanitizeValue(persona?.streetNumber) ?? '']
-        .filter(Boolean)
-        .join(' ')
-    );
-  }
-  if (sanitizeValue(persona?.locality) || sanitizeValue(persona?.province)) {
-    addressPieces.push(
-      [sanitizeValue(persona?.locality) ?? '', sanitizeValue(persona?.province) ?? '']
-        .filter(Boolean)
-        .join(', ')
-    );
-  }
-  if (sanitizeValue(persona?.reference)) {
-    addressPieces.push(`Referencia: ${sanitizeValue(persona?.reference)}`);
-  }
-  const address = addressPieces.length ? addressPieces.join(' · ') : null;
+  const formatAddress = (address: CaseAddressEntry) => {
+    const parts = [
+      sanitizeValue(address.street),
+      sanitizeValue(address.streetNumber),
+      sanitizeValue(address.locality),
+      sanitizeValue(address.province)
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
+
+  const buildLegacyAddress = () => {
+    const addressPieces: string[] = [];
+    if (sanitizeValue(persona?.street) || sanitizeValue(persona?.streetNumber)) {
+      addressPieces.push(
+        [sanitizeValue(persona?.street) ?? '', sanitizeValue(persona?.streetNumber) ?? '']
+          .filter(Boolean)
+          .join(' ')
+      );
+    }
+    if (sanitizeValue(persona?.locality) || sanitizeValue(persona?.province)) {
+      addressPieces.push(
+        [sanitizeValue(persona?.locality) ?? '', sanitizeValue(persona?.province) ?? '']
+          .filter(Boolean)
+          .join(', ')
+      );
+    }
+    if (sanitizeValue(persona?.reference)) {
+      addressPieces.push(`Referencia: ${sanitizeValue(persona?.reference)}`);
+    }
+    return addressPieces.length ? addressPieces.join(' · ') : null;
+  };
+
+  const addresses = persona?.addresses && persona.addresses.length > 0
+    ? persona.addresses
+    : null;
+  const legacyAddress = buildLegacyAddress();
 
   const additionalInfo = caseRecord.additionalInfo.filter(
     (entry) => sanitizeValue(entry.label) && sanitizeValue(entry.value)
@@ -202,10 +219,34 @@ const CaseDetailPage = () => {
     });
   }
 
-  if (address) {
+  if (addresses) {
+    addresses.forEach((address, index) => {
+      const label = addresses.length === 1
+        ? 'Domicilio'
+        : index === 0
+          ? 'Domicilios'
+          : '';
+
+      const isPrincipal = address.isPrincipal;
+      const formattedAddress = formatAddress(address);
+      const reference = sanitizeValue(address.reference);
+
+      if (formattedAddress) {
+        let value = isPrincipal ? `📍 [PRINCIPAL] ${formattedAddress}` : `📍 ${formattedAddress}`;
+        if (reference) {
+          value += `\nReferencia: ${reference}`;
+        }
+
+        personalHighlights.push({
+          label,
+          value
+        });
+      }
+    });
+  } else if (legacyAddress) {
     personalHighlights.push({
       label: 'Domicilio',
-      value: address
+      value: legacyAddress
     });
   }
 
