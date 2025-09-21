@@ -165,6 +165,7 @@ model Case {
   delito              String?             @map("delito")
   recompensa          Recompensa          @default(SIN_DATO) @map("recompensa")
   rewardAmount        Decimal?            @map("monto_recompensa")
+  priorityValue       Int?                @map("priority_value")
   additionalInfo      Json?               @map("informacion_complementaria")
   creadoEn            DateTime            @default(now()) @map("creado_en")
   actualizadoEn       DateTime            @updatedAt @map("actualizado_en")

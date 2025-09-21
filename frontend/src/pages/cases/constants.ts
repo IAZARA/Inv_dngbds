@@ -20,6 +20,7 @@ export const tabs: Array<{ id: TabId; label: string }> = [
   { id: 'contacto', label: 'Contacto' },
   { id: 'domicilio', label: 'Domicilio' },
   { id: 'judicial', label: 'Datos Judiciales' },
+  { id: 'prioridad', label: 'Prioridad' },
   { id: 'informacion', label: 'Información complementaria' },
   { id: 'fotos', label: 'Fotos' },
   { id: 'documentos', label: 'Documentos' }

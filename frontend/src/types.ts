@@ -145,6 +145,7 @@ export interface CaseRecord {
   fuerzaAsignada?: string | null;
   recompensa: Recompensa;
   rewardAmount?: string | null;
+  priorityValue?: number | null;
   creadoEn: string;
   actualizadoEn: string;
   additionalInfo: CaseAdditionalInfoEntry[];

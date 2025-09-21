@@ -3,6 +3,7 @@ export type TabId =
   | 'contacto'
   | 'domicilio'
   | 'judicial'
+  | 'prioridad'
   | 'informacion'
   | 'fotos'
   | 'documentos';

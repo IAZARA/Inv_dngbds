@@ -12,6 +12,7 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import type { Resolver } from 'react-hook-form';
 
 import { FaStar } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 import { api, resolveAssetUrl } from '../../lib/api';
 import type { CaseMediaItem, CaseRecord } from '../../types';
 import {
@@ -123,6 +124,7 @@ const CaseForm = ({
   onEditingCaseChange,
   isSaving
 }: CaseFormProps) => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabId>('identidad');
   const [photos, setPhotos] = useState<CaseMediaItem[]>([]);
@@ -231,6 +233,16 @@ const CaseForm = ({
     if (photoInputRef.current) photoInputRef.current.value = '';
     if (documentInputRef.current) documentInputRef.current.value = '';
   }, [editingCase, reset]);
+
+  // Si el usuario no tiene acceso y la pestaña activa es prioridad, cambiar a identidad
+  useEffect(() => {
+    const authorizedEmails = ['gian.sosa@minseg.gob.ar', 'federico.foffano@minseg.gob.ar'];
+    const hasAccess = user?.role === 'ADMIN' || authorizedEmails.includes(user?.email || '');
+
+    if (!hasAccess && activeTab === 'prioridad') {
+      setActiveTab('identidad');
+    }
+  }, [user?.role, user?.email, activeTab]);
 
   useEffect(() => {
     register('rewardAmountStatus');
@@ -553,6 +565,11 @@ const CaseForm = ({
           errors.recompensa ||
           errors.rewardAmount
         );
+      case 'prioridad':
+        // Solo validar errores de prioridad si el usuario tiene acceso a la pestaña
+        const authorizedEmails = ['gian.sosa@minseg.gob.ar', 'federico.foffano@minseg.gob.ar'];
+        const hasAccess = user?.role === 'ADMIN' || authorizedEmails.includes(user?.email || '');
+        return hasAccess ? !!errors.priorityValue : false;
       case 'informacion':
         return Array.isArray(errors.additionalInfo)
           ? errors.additionalInfo.some((entry) => !!entry)
@@ -661,6 +678,18 @@ const CaseForm = ({
 
   const formBusy = isSubmitting || isSaving;
   const ageValue = computeAge(birthdateValue ?? undefined);
+
+  // Filtrar las pestañas según el rol del usuario y excepciones específicas
+  const visibleTabs = useMemo(() => {
+    // Usuarios específicos que pueden ver la pestaña de prioridad aunque sean OPERATOR
+    const authorizedEmails = ['gian.sosa@minseg.gob.ar', 'federico.foffano@minseg.gob.ar'];
+
+    if (user?.role === 'ADMIN' || authorizedEmails.includes(user?.email || '')) {
+      return tabs;
+    }
+    // Para otros usuarios, excluir la pestaña de prioridad
+    return tabs.filter(tab => tab.id !== 'prioridad');
+  }, [user?.role, user?.email]);
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -1103,6 +1132,50 @@ const CaseForm = ({
             )}
           </div>
         );
+      case 'prioridad':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <h4 style={{ margin: 0 }}>Prioridad del Comando Federal de Recaptura de Evadidos</h4>
+              <div style={fieldCardStyle}>
+                <label style={{ display: 'block' }}>
+                  <span style={{ fontSize: '1.1rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                    Valor de Prioridad
+                  </span>
+                  <input
+                    type="number"
+                    {...register('priorityValue', { valueAsNumber: true })}
+                    min={1}
+                    max={10000}
+                    disabled={!canEdit}
+                    placeholder="Ingrese un valor entre 1 y 10000"
+                    style={{
+                      fontSize: '1.25rem',
+                      padding: '0.75rem 1rem',
+                      width: '100%',
+                      maxWidth: '300px',
+                      fontWeight: '500',
+                      textAlign: 'center'
+                    }}
+                  />
+                  {errors.priorityValue && (
+                    <span className="error">{errors.priorityValue.message}</span>
+                  )}
+                </label>
+                <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#f0f4f8', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.5', color: '#2d3748' }}>
+                    <strong>Nota:</strong> Este número está asignado en base a los criterios de prioridad establecidos por el Comando Federal de Recaptura de Evadidos.
+                  </p>
+                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.9rem', color: '#4a5568' }}>
+                    • Rango válido: 1 a 10,000
+                    <br />
+                    • Mayor valor = Mayor prioridad
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+        );
       case 'informacion':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -1404,7 +1477,7 @@ const CaseForm = ({
       <form onSubmit={handleSubmit(onFormSubmit)} className="form" style={{ gap: '1.5rem' }}>
         <div className="tabs-container">
           <div className="tabs-header">
-            {tabs.map((tab) => (
+            {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"

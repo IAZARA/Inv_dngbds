@@ -273,6 +273,7 @@ const serializeCase = (record: CaseWithRelations) => {
     fuerzaAsignada: record.fuerzaAsignada,
     recompensa: record.recompensa,
     rewardAmount,
+    priorityValue: record.priorityValue,
     creadoEn: record.creadoEn.toISOString(),
     actualizadoEn: record.actualizadoEn.toISOString(),
     additionalInfo: parseAdditionalInfo(record.additionalInfo ?? null),
@@ -569,7 +570,10 @@ const attachPersonToCase = async (
 
 export const listCases = async () => {
   const cases = await prisma.case.findMany({
-    orderBy: { creadoEn: 'desc' },
+    orderBy: [
+      { priorityValue: { sort: 'desc', nulls: 'last' } },
+      { creadoEn: 'desc' }
+    ],
     include: caseInclude
   });
 
@@ -1117,6 +1121,7 @@ export const createCase = async (input: CreateCaseInput) => {
           input.recompensa === 'SI' && input.rewardAmount
             ? new Prisma.Decimal(input.rewardAmount)
             : null,
+        priorityValue: input.priorityValue,
         additionalInfo,
         personas: {
           create: {
@@ -1168,6 +1173,7 @@ export const updateCase = async (id: string, input: UpdateCaseInput) => {
             : input.recompensa !== undefined && resolvedRecompensa !== 'SI'
               ? null
               : undefined,
+        priorityValue: input.priorityValue !== undefined ? input.priorityValue : undefined,
         additionalInfo: input.additionalInfo !== undefined ? additionalInfo ?? [] : undefined
       }
     });

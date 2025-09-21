@@ -88,6 +88,12 @@ export const caseFormSchema = z
       .regex(recompensaAmountRegex, 'Monto inválido (máx 2 decimales)')
       .optional()
       .or(z.literal('')),
+    priorityValue: z
+      .number()
+      .min(1, 'El valor debe ser mayor a 0')
+      .max(10000, 'El valor debe ser menor o igual a 10000')
+      .optional()
+      .or(z.null()),
     persona: casePersonSchema,
     additionalInfo: z.array(additionalInfoItemSchema).default([])
   })
@@ -132,6 +138,7 @@ export const defaultValues: CaseFormValues = {
   recompensa: 'SIN_DATO',
   rewardAmountStatus: 'KNOWN',
   rewardAmount: '',
+  priorityValue: null,
   persona: {
     personId: undefined,
     firstName: '',

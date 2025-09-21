@@ -91,6 +91,12 @@ export const createCaseSchema = z.object({
     .optional()
     .or(z.literal(''))
     .or(z.null()),
+  priorityValue: z
+    .number()
+    .min(1, 'El valor debe ser mayor a 0')
+    .max(10000, 'El valor debe ser menor o igual a 10000')
+    .optional()
+    .or(z.null()),
   persona: casePersonSchema,
   additionalInfo: z.array(additionalInfoItemSchema).optional()
 });
@@ -116,6 +122,12 @@ export const updateCaseSchema = z.object({
     .regex(/^\d+(\.\d{1,2})?$/, 'Monto inválido (hasta 2 decimales)')
     .optional()
     .or(z.literal(''))
+    .or(z.null()),
+  priorityValue: z
+    .number()
+    .min(1, 'El valor debe ser mayor a 0')
+    .max(10000, 'El valor debe ser menor o igual a 10000')
+    .optional()
     .or(z.null()),
   persona: casePersonSchema.partial().optional(),
   additionalInfo: z.array(additionalInfoItemSchema).optional()

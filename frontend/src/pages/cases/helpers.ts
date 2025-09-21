@@ -129,6 +129,7 @@ export const mapCaseToForm = (record: CaseRecord): CaseFormValues => ({
   rewardAmountStatus:
     record.recompensa === 'SI' && !record.rewardAmount ? 'UNKNOWN' : 'KNOWN',
   rewardAmount: record.rewardAmount ?? '',
+  priorityValue: record.priorityValue ?? null,
   persona: {
     personId: record.persona?.id,
     firstName: record.persona?.firstName ?? '',
@@ -245,6 +246,7 @@ export const buildPayload = (values: CaseFormValues) => {
           ? null
           : blankToUndefined(values.rewardAmount)
         : undefined,
+    priorityValue: values.priorityValue,
     persona: {
       personId: values.persona.personId,
       firstName: values.persona.firstName,
