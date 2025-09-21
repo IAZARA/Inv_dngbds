@@ -12,6 +12,7 @@ import {
   updateCaseDocumentDescriptionHandler,
   updateCaseHandler,
   updateCasePhotoDescriptionHandler,
+  setPrimaryCasePhotoHandler,
   uploadCaseDocumentHandler,
   uploadCasePhotoHandler
 } from './cases.controller';
@@ -37,6 +38,11 @@ router.patch(
   '/:caseId/photos/:photoId',
   requireRole(UserRole.ADMIN, UserRole.OPERATOR),
   updateCasePhotoDescriptionHandler
+);
+router.patch(
+  '/:caseId/photos/:photoId/primary',
+  requireRole(UserRole.ADMIN, UserRole.OPERATOR),
+  setPrimaryCasePhotoHandler
 );
 router.delete(
   '/:caseId/photos/:photoId',

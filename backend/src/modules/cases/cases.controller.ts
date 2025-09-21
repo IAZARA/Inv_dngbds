@@ -11,6 +11,7 @@ import {
   getCaseById,
   listCases,
   removeCaseMedia,
+  setCasePrimaryPhoto,
   updateCase,
   updateCaseMediaDescription
 } from './cases.service';
@@ -141,6 +142,15 @@ export const updateCasePhotoDescriptionHandler = async (
       CaseMediaKind.PHOTO
     );
     res.json({ photo: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const setPrimaryCasePhotoHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const photo = await setCasePrimaryPhoto(req.params.caseId, req.params.photoId);
+    res.json({ photo });
   } catch (error) {
     next(error);
   }

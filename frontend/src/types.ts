@@ -84,6 +84,7 @@ export interface CaseMediaItem {
   mimeType: string;
   size: number;
   uploadedAt: string;
+  isPrimary: boolean;
 }
 
 export interface CaseContactValueEntry {

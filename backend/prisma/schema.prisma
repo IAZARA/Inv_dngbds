@@ -183,6 +183,7 @@ model CaseMedia {
   size         Int
   description  String?
   uploadedAt   DateTime      @default(now())
+  isPrimary    Boolean       @default(false) @map("is_primary")
 
   case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
 

@@ -44,7 +44,8 @@ const serializeMedia = (item: CaseWithRelations['media'][number]) => ({
   originalName: item.originalName,
   mimeType: item.mimeType,
   size: item.size,
-  uploadedAt: item.uploadedAt.toISOString()
+  uploadedAt: item.uploadedAt.toISOString(),
+  isPrimary: item.isPrimary ?? false
 });
 
 type AdditionalInfoItem = { label: string; value: string };
@@ -590,7 +591,8 @@ const createMediaRecord = async (
   caseId: string,
   kind: CaseMediaKind,
   file: UploadedFile,
-  description: string
+  description: string,
+  options?: { isPrimary?: boolean }
 ) => {
   const relativePath = relativeFromUploads(file.path);
 
@@ -602,7 +604,8 @@ const createMediaRecord = async (
       originalName: file.originalname,
       mimeType: file.mimetype,
       size: file.size,
-      description
+      description,
+      isPrimary: options?.isPrimary ?? false
     }
   });
 
@@ -612,7 +615,12 @@ const createMediaRecord = async (
 export const addCasePhoto = async (caseId: string, file: UploadedFile, description?: string) => {
   await ensureCaseExists(caseId);
   const resolvedDescription = normalizeDescription(description, 'Foto del investigado', 200);
-  return createMediaRecord(caseId, CaseMediaKind.PHOTO, file, resolvedDescription);
+  const existingPrimary = await prisma.caseMedia.findFirst({
+    where: { caseId, kind: CaseMediaKind.PHOTO, isPrimary: true }
+  });
+  return createMediaRecord(caseId, CaseMediaKind.PHOTO, file, resolvedDescription, {
+    isPrimary: !existingPrimary
+  });
 };
 
 export const addCaseDocument = async (caseId: string, file: UploadedFile, description?: string) => {
@@ -658,4 +666,44 @@ export const removeCaseMedia = async (caseId: string, mediaId: string, expectedK
 
   await prisma.caseMedia.delete({ where: { id: mediaId } });
   await removePhysicalFile(record.filePath);
+
+  if (expectedKind === CaseMediaKind.PHOTO && record.isPrimary) {
+    const nextPrimary = await prisma.caseMedia.findFirst({
+      where: { caseId, kind: CaseMediaKind.PHOTO },
+      orderBy: { uploadedAt: 'desc' }
+    });
+
+    if (nextPrimary) {
+      await prisma.caseMedia.update({ where: { id: nextPrimary.id }, data: { isPrimary: true } });
+    }
+  }
+};
+
+export const setCasePrimaryPhoto = async (caseId: string, photoId: string) => {
+  return prisma.$transaction(async (tx) => {
+    const target = await tx.caseMedia.findFirst({
+      where: { id: photoId, caseId, kind: CaseMediaKind.PHOTO }
+    });
+
+    if (!target) {
+      throw new AppError('Foto no encontrada', 404, true);
+    }
+
+    await tx.caseMedia.updateMany({
+      where: {
+        caseId,
+        kind: CaseMediaKind.PHOTO,
+        isPrimary: true,
+        NOT: { id: photoId }
+      },
+      data: { isPrimary: false }
+    });
+
+    const updated = await tx.caseMedia.update({
+      where: { id: photoId },
+      data: { isPrimary: true }
+    });
+
+    return serializeMedia(updated as CaseWithRelations['media'][number]);
+  });
 };

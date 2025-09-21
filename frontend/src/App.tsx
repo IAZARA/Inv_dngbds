@@ -8,6 +8,7 @@ import PersonDetailPage from './pages/PersonDetail';
 import SourcesPage from './pages/Sources';
 import CasesPage from './pages/Cases';
 import SettingsPage from './pages/Settings';
+import CaseDetailPage from './pages/CaseDetail';
 
 const ProtectedLayout = () => (
   <ProtectedRoute>
@@ -56,6 +57,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <CasesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="cases/:caseId"
+          element={
+            <ProtectedRoute>
+              <CaseDetailPage />
             </ProtectedRoute>
           }
         />

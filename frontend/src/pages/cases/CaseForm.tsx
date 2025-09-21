@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import type { Resolver } from 'react-hook-form';
 
+import { FaStar } from 'react-icons/fa';
 import { api } from '../../lib/api';
 import type { CaseMediaItem, CaseRecord } from '../../types';
 import {
@@ -129,6 +130,13 @@ const CaseForm = ({
   const [documentFormFile, setDocumentFormFile] = useState<File | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const documentInputRef = useRef<HTMLInputElement | null>(null);
+
+  const invalidateCaseQueries = () => {
+    if (editingCase?.id) {
+      queryClient.invalidateQueries({ queryKey: ['case', editingCase.id] });
+    }
+    queryClient.invalidateQueries({ queryKey: ['cases'] });
+  };
 
   const resolver = useMemo(() => zodResolver(caseFormSchema) as Resolver<CaseFormValues>, []);
 
@@ -275,7 +283,10 @@ const CaseForm = ({
     },
     onSuccess: (photo) => {
       setPhotos((current) => {
-        const next = [...current, photo];
+        const normalized = photo.isPrimary
+          ? current.map((item) => ({ ...item, isPrimary: false }))
+          : current;
+        const next = [...normalized, photo];
         onEditingCaseChange(
           editingCase ? { ...editingCase, photos: next } : editingCase
         );
@@ -284,7 +295,7 @@ const CaseForm = ({
       setPhotoFormDescription(defaultPhotoDescription);
       setPhotoFormFile(null);
       if (photoInputRef.current) photoInputRef.current.value = '';
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      invalidateCaseQueries();
     }
   });
 
@@ -317,7 +328,7 @@ const CaseForm = ({
       setDocumentFormDescription(defaultDocumentDescription);
       setDocumentFormFile(null);
       if (documentInputRef.current) documentInputRef.current.value = '';
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      invalidateCaseQueries();
     }
   });
 
@@ -343,7 +354,33 @@ const CaseForm = ({
         return next;
       });
       setPhotoDescriptions((current) => ({ ...current, [photo.id]: photo.description ?? '' }));
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      invalidateCaseQueries();
+    }
+  });
+
+  const photoPrimaryMutation = useMutation({
+    mutationFn: async ({
+      caseId,
+      photoId
+    }: {
+      caseId: string;
+      photoId: string;
+    }) => {
+      const { data } = await api.patch(`/cases/${caseId}/photos/${photoId}/primary`);
+      return data.photo as CaseMediaItem;
+    },
+    onSuccess: (photo) => {
+      setPhotos((current) => {
+        const next = current.map((item) => ({
+          ...item,
+          isPrimary: item.id === photo.id
+        }));
+        onEditingCaseChange(
+          editingCase ? { ...editingCase, photos: next } : editingCase
+        );
+        return next;
+      });
+      invalidateCaseQueries();
     }
   });
 
@@ -374,7 +411,7 @@ const CaseForm = ({
         ...current,
         [document.id]: document.description ?? ''
       }));
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      invalidateCaseQueries();
     }
   });
 
@@ -390,7 +427,14 @@ const CaseForm = ({
     },
     onSuccess: (_data, variables) => {
       setPhotos((current) => {
-        const next = current.filter((photo) => photo.id !== variables.photoId);
+        const removed = current.find((photo) => photo.id === variables.photoId);
+        let next = current.filter((photo) => photo.id !== variables.photoId);
+        if (removed?.isPrimary && next.length > 0) {
+          next = next.map((photo, index) => ({
+            ...photo,
+            isPrimary: index === 0
+          }));
+        }
         onEditingCaseChange(
           editingCase ? { ...editingCase, photos: next } : editingCase
         );
@@ -401,7 +445,7 @@ const CaseForm = ({
         delete rest[variables.photoId];
         return rest;
       });
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      invalidateCaseQueries();
     }
   });
 
@@ -1031,11 +1075,30 @@ const CaseForm = ({
                     photoDeleteMutation.variables?.photoId === photo.id && photoDeleteMutation.isPending;
                   return (
                     <article key={photo.id} className="record-item" style={{ gap: '0.75rem' }}>
-                      <img
-                        src={photo.url}
-                        alt={photo.description ?? 'Foto del caso'}
-                        style={{ width: '100%', maxHeight: '240px', objectFit: 'cover' }}
-                      />
+                      <div
+                        className={`case-photo-frame${photo.isPrimary ? ' is-primary' : ''}`}
+                      >
+                        <img
+                          src={photo.url}
+                          alt={photo.description ?? 'Foto del caso'}
+                        />
+                        <button
+                          type="button"
+                          className={`photo-primary-toggle${photo.isPrimary ? ' active' : ''}`}
+                          onClick={() => {
+                            if (!editingCase?.id || photo.isPrimary) return;
+                            photoPrimaryMutation.mutate({
+                              caseId: editingCase.id,
+                              photoId: photo.id
+                            });
+                          }}
+                          disabled={!canEdit || photoPrimaryMutation.isPending}
+                          aria-label={photo.isPrimary ? 'Foto principal' : 'Marcar como principal'}
+                        >
+                          <FaStar />
+                        </button>
+                        {photo.isPrimary && <span className="photo-primary-badge">Principal</span>}
+                      </div>
                       <label className="full" style={{ display: 'block' }}>
                         Descripción
                         <input
