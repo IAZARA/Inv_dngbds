@@ -5,7 +5,6 @@ import {
   collectSocialList,
   computeAge,
   formatOptionText,
-  formatPersonSummary,
   translateEstado
 } from './helpers';
 
@@ -111,7 +110,6 @@ const CasesList = ({
           const personaFullName = [item.persona?.firstName, item.persona?.lastName]
             .filter(Boolean)
             .join(' ');
-          const hasPersona = Boolean(personaFullName);
           const delito = sanitizeValue(item.delito);
           const fuerza = sanitizeValue(item.fuerzaAsignada);
           const formattedJurisdiccion = formatOptionText(item.jurisdiccion);
@@ -122,116 +120,146 @@ const CasesList = ({
           const numeroCausa = sanitizeValue(item.numeroCausa);
           const rewardAmount = sanitizeValue(item.rewardAmount ?? null);
           const fechaHecho = item.fechaHecho ? new Date(item.fechaHecho).toLocaleDateString() : null;
+          const ageLabel = item.persona?.birthdate
+            ? computeAge(item.persona.birthdate)
+            : item.persona?.age
+              ? String(item.persona.age)
+              : null;
+
+          const statusClass = statusVariant(item.estadoRequerimiento);
 
           return (
-            <article key={item.id} className="case-summary">
+            <article key={item.id} className={`case-summary case-summary--${statusClass}`}>
               <header className="case-summary__header">
-                <div className="case-summary__identity">
-                  <div className="case-summary__name-block">
-                    {primaryPhoto && (
-                      <div className="case-summary__avatar">
-                        <img src={primaryPhoto.url} alt={primaryPhoto.description ?? 'Foto principal'} />
-                      </div>
-                    )}
-                    <div>
-                      <h4>
-                        {hasPersona ? personaFullName : 'Sin persona asociada'}
-                      </h4>
-                      <div className="case-summary__meta">
-                        {numeroCausa && <span>Expediente: {numeroCausa}</span>}
-                        {item.persona?.identityNumber && (
-                          <span>Documento: {item.persona.identityNumber}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className={`case-status case-status--${statusVariant(item.estadoRequerimiento)}`}>
-                  {statusLabel}
-                </div>
-              </header>
-              <div className="case-summary__body">
-                <div className="case-summary__info">
-                  {delito && <span className="case-chip case-chip--delito">{delito}</span>}
-                  {caratula && <span className="case-chip">Carátula: {caratula}</span>}
-                  {fuerza && <span className="case-chip">Fuerza: {fuerza}</span>}
-                  {jurisdiccion && <span className="case-chip">Jurisdicción: {jurisdiccion}</span>}
-                  {fechaHecho && <span className="case-chip">Hecho: {fechaHecho}</span>}
-                  {item.recompensa === 'SI' && rewardAmount && (
-                    <span className="case-chip case-chip--reward">Recompensa: ${rewardAmount}</span>
+                <div className="case-summary__title">
+                  <h3>{(personaFullName || 'Sin persona asociada').toUpperCase()}</h3>
+                  {item.persona?.identityNumber && (
+                    <p>
+                      <strong>Documento:</strong> {item.persona.documentType ?? 'S/D'}{' '}
+                      {item.persona.identityNumber}
+                    </p>
                   )}
                 </div>
-                <div className="case-summary__details">
-                  {item.persona ? (
-                    <>
-                      <p className="muted">{formatPersonSummary(item.persona)}</p>
-                      <div className="case-summary__contact">
-                        {phoneList.length > 0 && (
-                          <span>Tel: {phoneList.join(' · ')}</span>
-                        )}
-                        {emailList.length > 0 && (
-                          <span>Email: {emailList.join(' · ')}</span>
-                        )}
-                        {socialList.length > 0 && (
-                          <span>Redes: {socialList.join(' · ')}</span>
-                        )}
-                      </div>
-                      <div className="case-summary__tagline">
-                        {item.persona.sex && <span className="tag">{item.persona.sex}</span>}
-                        {item.persona.documentType && (
-                          <span className="tag">
-                            {item.persona.documentType}
-                            {item.persona.documentName ? ` • ${item.persona.documentName}` : ''}
-                          </span>
-                        )}
-                        {item.persona.birthdate && (
-                          <span className="tag">
-                            {new Date(item.persona.birthdate).toLocaleDateString()} ({
-                              item.persona.age ?? computeAge(item.persona.birthdate)
-                            } años)
-                          </span>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="muted">Sin persona asociada al caso.</p>
-                  )}
-                </div>
-              </div>
-              <footer className="case-summary__footer">
-                <div className="case-summary__timestamps">
-                  <span>Creado: {new Date(item.creadoEn).toLocaleDateString()}</span>
-                  <span>Actualizado: {new Date(item.actualizadoEn).toLocaleDateString()}</span>
-                  <span>
-                    Archivos: {item.photos.length} foto(s) · {item.documents.length} documento(s)
-                  </span>
-                </div>
-                <div className="actions">
+                <div className="case-summary__actions">
                   <button
-                    className="btn ghost"
+                    className="case-action"
                     type="button"
                     onClick={() => navigate(`/cases/${item.id}`)}
+                    title="Ver legajo"
                   >
-                    Ver legajo
+                    👁
                   </button>
                   <button
-                    className="btn ghost"
+                    className="case-action"
                     type="button"
                     onClick={() => onEdit(item)}
                     disabled={!canEdit}
+                    title="Editar caso"
                   >
-                    Editar
+                    ✎
                   </button>
                   <button
-                    className="btn ghost"
+                    className="case-action"
                     type="button"
                     onClick={() => onDelete(item)}
                     disabled={!canEdit || isDeleting}
+                    title="Eliminar caso"
                   >
-                    {isDeleting ? 'Eliminando…' : 'Eliminar'}
+                    🗑
                   </button>
                 </div>
-              </footer>
+              </header>
+
+              <div className="case-summary__layout">
+                <div className="case-summary__portrait">
+                  {primaryPhoto ? (
+                    <img src={primaryPhoto.url} alt={primaryPhoto.description ?? 'Foto principal'} />
+                  ) : (
+                    <span>Sin foto</span>
+                  )}
+                  <span className={`case-status case-status--${statusClass}`}>{statusLabel}</span>
+                </div>
+
+                <div className="case-summary__info">
+                  <div>
+                    {ageLabel && (
+                      <p>
+                        <strong>Edad:</strong> {ageLabel} años
+                      </p>
+                    )}
+                    {item.persona?.sex && (
+                      <p>
+                        <strong>Género:</strong> {sanitizeValue(item.persona.sex) ?? item.persona.sex}
+                      </p>
+                    )}
+                    {numeroCausa && (
+                      <p>
+                        <strong>Expediente:</strong> {numeroCausa}
+                      </p>
+                    )}
+                    {caratula && (
+                      <p>
+                        <strong>Carátula:</strong> {caratula}
+                      </p>
+                    )}
+                    {delito && (
+                      <p>
+                        <strong>Delito:</strong> {delito}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    {jurisdiccion && (
+                      <p>
+                        <strong>Jurisdicción:</strong> {jurisdiccion}
+                      </p>
+                    )}
+                    {fuerza && (
+                      <p>
+                        <strong>Fuerza asignada:</strong> {fuerza}
+                      </p>
+                    )}
+                    {fechaHecho && (
+                      <p>
+                        <strong>Fecha del hecho:</strong> {fechaHecho}
+                      </p>
+                    )}
+                    {item.recompensa === 'SI' && rewardAmount && (
+                      <p>
+                        <strong>Recompensa:</strong> ${rewardAmount}
+                      </p>
+                    )}
+                    <p>
+                      <strong>Archivos:</strong> {item.photos.length} foto(s) · {item.documents.length} documento(s)
+                    </p>
+                  </div>
+
+                  <div>
+                    <p>
+                      <strong>Fecha de registro:</strong> {new Date(item.creadoEn).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Última actualización:</strong> {new Date(item.actualizadoEn).toLocaleDateString()}
+                    </p>
+                    {phoneList.length > 0 && (
+                      <p>
+                        <strong>Teléfonos:</strong> {phoneList.join(' · ')}
+                      </p>
+                    )}
+                    {emailList.length > 0 && (
+                      <p>
+                        <strong>Emails:</strong> {emailList.join(' · ')}
+                      </p>
+                    )}
+                    {socialList.length > 0 && (
+                      <p>
+                        <strong>Redes:</strong> {socialList.join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </article>
           );
         })}

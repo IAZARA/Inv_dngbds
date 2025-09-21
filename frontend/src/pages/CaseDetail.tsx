@@ -28,6 +28,13 @@ const sanitizeValue = (value?: string | null) => {
   return trimmed;
 };
 
+const formatCurrency = (value?: string | null) => {
+  if (!value) return null;
+  const sanitized = Number(value);
+  if (Number.isNaN(sanitized)) return value;
+  return sanitized.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+};
+
 const statusVariant = (estado: EstadoRequerimiento) => {
   switch (estado) {
     case 'CAPTURA_VIGENTE':
@@ -40,11 +47,17 @@ const statusVariant = (estado: EstadoRequerimiento) => {
   }
 };
 
-const formatCurrency = (value?: string | null) => {
-  if (!value) return null;
-  const sanitized = Number(value);
-  if (Number.isNaN(sanitized)) return value;
-  return sanitized.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+const statusDescription = (estado: EstadoRequerimiento) => {
+  switch (estado) {
+    case 'CAPTURA_VIGENTE':
+      return 'Captura vigente. Coordinar con la fuerza asignada para el seguimiento del caso.';
+    case 'SIN_EFECTO':
+      return 'A la espera de documentación oficial para cerrar la búsqueda.';
+    case 'DETENIDO':
+      return 'La persona fue localizada. Validar información antes de archivar el expediente.';
+    default:
+      return '';
+  }
 };
 
 const CaseDetailPage = () => {
@@ -65,6 +78,8 @@ const CaseDetailPage = () => {
   const caseRecord = caseQuery.data;
 
   const persona = caseRecord?.persona ?? null;
+  const statusClass = caseRecord ? statusVariant(caseRecord.estadoRequerimiento) : 'danger';
+  const statusLabel = caseRecord ? translateEstado(caseRecord.estadoRequerimiento) : '';
 
   const primaryPhoto: CaseMediaItem | null = useMemo(() => {
     if (!caseRecord) return null;
@@ -89,7 +104,11 @@ const CaseDetailPage = () => {
   }
 
   if (isLoading) {
-    return <div className="page"><p>Cargando legajo...</p></div>;
+    return (
+      <div className="page case-detail">
+        <p>Cargando legajo...</p>
+      </div>
+    );
   }
 
   if (isError || !caseRecord) {
@@ -158,17 +177,24 @@ const CaseDetailPage = () => {
     <div className="page case-detail">
       <div className="page-header">
         <div>
-          <h2>{personaFullName || 'Caso sin persona asociada'}</h2>
+          <h2>{(personaFullName || 'Caso sin persona asociada').toUpperCase()}</h2>
+          {persona?.identityNumber && (
+            <p>
+              Documento: {persona.documentType ?? 'S/D'} {persona.identityNumber}
+            </p>
+          )}
           {numeroCausa && <p>Expediente: {numeroCausa}</p>}
         </div>
         <div className="case-detail__header-actions">
-          <div className={`case-status case-status--${statusVariant(caseRecord.estadoRequerimiento)}`}>
-            {translateEstado(caseRecord.estadoRequerimiento)}
-          </div>
           <button className="btn ghost" type="button" onClick={() => navigate('/cases')}>
             Volver
           </button>
         </div>
+      </div>
+
+      <div className={`case-detail__alert case-detail__alert--${statusClass}`}>
+        <span className="case-detail__alert-label">{statusLabel}</span>
+        <p>{statusDescription(caseRecord.estadoRequerimiento)}</p>
       </div>
 
       <section className="case-detail__hero card">
@@ -183,18 +209,26 @@ const CaseDetailPage = () => {
           </div>
         )}
         <div className="case-detail__summary">
-          {delito && <span className="case-chip case-chip--delito">{delito}</span>}
-          {caratula && <span className="case-chip">Carátula: {caratula}</span>}
-          {fuerza && <span className="case-chip">Fuerza: {fuerza}</span>}
-          {jurisdiccion && <span className="case-chip">Jurisdicción: {jurisdiccion}</span>}
-          {fechaHecho && <span className="case-chip">Hecho: {fechaHecho}</span>}
-          {caseRecord.recompensa === 'SI' && rewardAmount && (
-            <span className="case-chip case-chip--reward">Recompensa: {rewardAmount}</span>
-          )}
-          <div className="case-detail__timestamps">
-            <span>Creado: {createdAt}</span>
-            <span>Actualizado: {updatedAt}</span>
+          <div className="case-detail__badges">
+            {delito && <span className="case-badge case-badge--delito">{delito}</span>}
+            {caratula && <span className="case-badge">Carátula: {caratula}</span>}
+            {fuerza && <span className="case-badge">Fuerza: {fuerza}</span>}
+            {jurisdiccion && <span className="case-badge">Jurisdicción: {jurisdiccion}</span>}
+            {fechaHecho && <span className="case-badge">Fecha del hecho: {fechaHecho}</span>}
+            {caseRecord.recompensa === 'SI' && rewardAmount && (
+              <span className="case-badge case-badge--reward">Recompensa: {rewardAmount}</span>
+            )}
           </div>
+          <dl className="case-detail__timestamps">
+            <div>
+              <dt>Creado</dt>
+              <dd>{createdAt}</dd>
+            </div>
+            <div>
+              <dt>Actualizado</dt>
+              <dd>{updatedAt}</dd>
+            </div>
+          </dl>
         </div>
       </section>
 
@@ -241,16 +275,6 @@ const CaseDetailPage = () => {
               <div>
                 <dt>Nombre completo</dt>
                 <dd>{personaFullName}</dd>
-              </div>
-            )}
-            {persona?.identityNumber && (
-              <div>
-                <dt>Documento</dt>
-                <dd>
-                  {persona.identityNumber}
-                  {persona.documentType && ` · ${persona.documentType}`}
-                  {persona.documentName && ` (${persona.documentName})`}
-                </dd>
               </div>
             )}
             {birthdateLabel && (
@@ -306,35 +330,37 @@ const CaseDetailPage = () => {
         </section>
       )}
 
-      {otherPhotos.length > 0 && (
-        <section className="case-detail__section card">
-          <h3>Galería de fotos</h3>
-          <div className="case-detail__gallery">
-            {otherPhotos.map((photo) => (
-              <figure key={photo.id}>
-                <img src={photo.url} alt={photo.description ?? 'Foto del caso'} />
-                {photo.description && <figcaption>{photo.description}</figcaption>}
-              </figure>
-            ))}
+      <section className="case-detail__gallery-grid">
+        {otherPhotos.length > 0 && (
+          <div className="case-detail__section card">
+            <h3>Galería de fotos</h3>
+            <div className="case-detail__gallery">
+              {otherPhotos.map((photo) => (
+                <figure key={photo.id}>
+                  <img src={photo.url} alt={photo.description ?? 'Foto del caso'} />
+                  {photo.description && <figcaption>{photo.description}</figcaption>}
+                </figure>
+              ))}
+            </div>
           </div>
-        </section>
-      )}
+        )}
 
-      {caseRecord.documents.length > 0 && (
-        <section className="case-detail__section card">
-          <h3>Documentos adjuntos</h3>
-          <ul className="case-detail__documents">
-            {caseRecord.documents.map((doc) => (
-              <li key={doc.id}>
-                <a href={doc.url} target="_blank" rel="noreferrer">
-                  {doc.description ?? doc.originalName}
-                </a>
-                <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {caseRecord.documents.length > 0 && (
+          <div className="case-detail__section card">
+            <h3>Documentos adjuntos</h3>
+            <ul className="case-detail__documents">
+              {caseRecord.documents.map((doc) => (
+                <li key={doc.id}>
+                  <a href={doc.url} target="_blank" rel="noreferrer">
+                    {doc.description ?? doc.originalName}
+                  </a>
+                  <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
     </div>
   );
 };

@@ -501,3 +501,94 @@ Error: listen EADDRINUSE: address already in use :::4000
     at node:internal/modules/cjs/loader:1708:10
     at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
 [ERROR] 19:15:49 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 22:35:10 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/config/env.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 22:35:10 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 23:21:58 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 23:21:58 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 23:22:10 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 23:22:10 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 23:22:28 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.service.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 23:22:28 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 23:22:46 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.controller.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 23:22:46 Error: listen EADDRINUSE: address already in use :::4000
+[INFO] 23:22:52 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.routes.ts has been modified
+ReferenceError: setPrimaryCasePhotoHandler is not defined
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.routes.ts:44:3)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/ts-node-dev/lib/hook.js:63:13)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+[ERROR] 23:22:52 ReferenceError: setPrimaryCasePhotoHandler is not defined
+[INFO] 23:23:07 Restarting: /Users/macbook/Documents/InvestigacionDNGBDS/backend/src/modules/cases/cases.routes.ts has been modified
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/macbook/Documents/InvestigacionDNGBDS/backend/src/server.ts:7:20)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1565:14)
+    at Module._compile (/Users/macbook/Documents/InvestigacionDNGBDS/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:69:33)
+    at node:internal/modules/cjs/loader:1708:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/zf/1yht7tqd6h72mkw5frsckl2w0000gn/T/ts-node-dev-hook-9739366390674902.js:114:20)
+[ERROR] 23:23:07 Error: listen EADDRINUSE: address already in use :::4000
