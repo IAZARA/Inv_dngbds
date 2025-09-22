@@ -134,8 +134,8 @@ const CaseForm = ({
   const [photoFormDescription, setPhotoFormDescription] = useState<string>(defaultPhotoDescription);
   const [documentFormDescription, setDocumentFormDescription] =
     useState<string>(defaultDocumentDescription);
-  const [photoFormFile, setPhotoFormFile] = useState<File | null>(null);
-  const [documentFormFile, setDocumentFormFile] = useState<File | null>(null);
+  const [photoFormFiles, setPhotoFormFiles] = useState<FileList | null>(null);
+  const [documentFormFiles, setDocumentFormFiles] = useState<FileList | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const documentInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -223,13 +223,16 @@ const CaseForm = ({
       setDocuments([]);
     }
 
-    setActiveTab('identidad');
+    // Solo cambiar a identidad si no hay caso en edición (nuevo caso)
+    if (!editingCase) {
+      setActiveTab('identidad');
+    }
     setPhotoDescriptions({});
     setDocumentDescriptions({});
     setPhotoFormDescription(defaultPhotoDescription);
     setDocumentFormDescription(defaultDocumentDescription);
-    setPhotoFormFile(null);
-    setDocumentFormFile(null);
+    setPhotoFormFiles(null);
+    setDocumentFormFiles(null);
     if (photoInputRef.current) photoInputRef.current.value = '';
     if (documentInputRef.current) documentInputRef.current.value = '';
   }, [editingCase, reset]);
@@ -315,34 +318,39 @@ const CaseForm = ({
   const photoUploadMutation = useMutation({
     mutationFn: async ({
       caseId,
-      file,
+      files,
       description
     }: {
       caseId: string;
-      file: File;
+      files: FileList;
       description: string;
     }) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('description', description);
-      const { data } = await api.post(`/cases/${caseId}/photos`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('description', description);
+        const { data } = await api.post(`/cases/${caseId}/photos`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return data.photo as CaseMediaItem;
       });
-      return data.photo as CaseMediaItem;
+      return Promise.all(uploadPromises);
     },
-    onSuccess: (photo) => {
+    onSuccess: (newPhotos) => {
       setPhotos((current) => {
-        const normalized = photo.isPrimary
+        // Si la primera foto es marcada como principal, actualizar las otras
+        const firstPhoto = newPhotos[0];
+        const normalized = firstPhoto?.isPrimary
           ? current.map((item) => ({ ...item, isPrimary: false }))
           : current;
-        const next = [...normalized, photo];
+        const next = [...normalized, ...newPhotos];
         onEditingCaseChange(
           editingCase ? { ...editingCase, photos: next } : editingCase
         );
         return next;
       });
       setPhotoFormDescription(defaultPhotoDescription);
-      setPhotoFormFile(null);
+      setPhotoFormFiles(null);
       if (photoInputRef.current) photoInputRef.current.value = '';
       invalidateCaseQueries();
     }
@@ -351,31 +359,34 @@ const CaseForm = ({
   const documentUploadMutation = useMutation({
     mutationFn: async ({
       caseId,
-      file,
+      files,
       description
     }: {
       caseId: string;
-      file: File;
+      files: FileList;
       description: string;
     }) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('description', description);
-      const { data } = await api.post(`/cases/${caseId}/documents`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('description', description);
+        const { data } = await api.post(`/cases/${caseId}/documents`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return data.document as CaseMediaItem;
       });
-      return data.document as CaseMediaItem;
+      return Promise.all(uploadPromises);
     },
-    onSuccess: (document) => {
+    onSuccess: (newDocuments) => {
       setDocuments((current) => {
-        const next = [...current, document];
+        const next = [...current, ...newDocuments];
         onEditingCaseChange(
           editingCase ? { ...editingCase, documents: next } : editingCase
         );
         return next;
       });
       setDocumentFormDescription(defaultDocumentDescription);
-      setDocumentFormFile(null);
+      setDocumentFormFiles(null);
       if (documentInputRef.current) documentInputRef.current.value = '';
       invalidateCaseQueries();
     }
@@ -579,13 +590,13 @@ const CaseForm = ({
   };
 
   const handlePhotoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    setPhotoFormFile(file);
+    const files = event.target.files;
+    setPhotoFormFiles(files);
   };
 
   const handleDocumentFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    setDocumentFormFile(file);
+    const files = event.target.files;
+    setDocumentFormFiles(files);
   };
 
   const handlePhotoUpload = (
@@ -595,12 +606,12 @@ const CaseForm = ({
     if (!canEdit || photoUploadMutation.isPending) {
       return;
     }
-    if (!editingCase?.id || !photoFormFile) {
+    if (!editingCase?.id || !photoFormFiles || photoFormFiles.length === 0) {
       return;
     }
     photoUploadMutation.mutate({
       caseId: editingCase.id,
-      file: photoFormFile,
+      files: photoFormFiles,
       description: photoFormDescription
     });
   };
@@ -619,12 +630,12 @@ const CaseForm = ({
     if (!canEdit || documentUploadMutation.isPending) {
       return;
     }
-    if (!editingCase?.id || !documentFormFile) {
+    if (!editingCase?.id || !documentFormFiles || documentFormFiles.length === 0) {
       return;
     }
     documentUploadMutation.mutate({
       caseId: editingCase.id,
-      file: documentFormFile,
+      files: documentFormFiles,
       description: documentFormDescription
     });
   };
@@ -1285,12 +1296,13 @@ const CaseForm = ({
           <div className="stack" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="form-grid" role="group" aria-label="Formulario de carga de fotos">
               <label className="full">
-                Seleccionar archivo
+                Seleccionar archivo(s)
                 <input
                   type="file"
                   ref={photoInputRef}
                   onChange={handlePhotoFileChange}
                   accept="image/*"
+                  multiple
                   disabled={!canEdit || photoUploadMutation.isPending}
                 />
               </label>
@@ -1308,10 +1320,10 @@ const CaseForm = ({
                 <button
                   type="button"
                   className="btn primary"
-                  disabled={!canEdit || !photoFormFile || photoUploadMutation.isPending}
+                  disabled={!canEdit || !photoFormFiles || photoFormFiles.length === 0 || photoUploadMutation.isPending}
                   onClick={handlePhotoUpload}
                 >
-                  {photoUploadMutation.isPending ? 'Subiendo…' : 'Subir foto'}
+                  {photoUploadMutation.isPending ? 'Subiendo…' : photoFormFiles && photoFormFiles.length > 1 ? `Subir ${photoFormFiles.length} fotos` : 'Subir foto'}
                 </button>
               </div>
             </div>
@@ -1401,12 +1413,13 @@ const CaseForm = ({
           <div className="stack" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="form-grid" role="group" aria-label="Formulario de carga de documentos">
               <label className="full">
-                Seleccionar archivo
+                Seleccionar archivo(s)
                 <input
                   type="file"
                   ref={documentInputRef}
                   onChange={handleDocumentFileChange}
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf,.odt,.ods,image/*"
+                  multiple
                   disabled={!canEdit || documentUploadMutation.isPending}
                 />
               </label>
@@ -1424,10 +1437,10 @@ const CaseForm = ({
                 <button
                   type="button"
                   className="btn primary"
-                  disabled={!canEdit || !documentFormFile || documentUploadMutation.isPending}
+                  disabled={!canEdit || !documentFormFiles || documentFormFiles.length === 0 || documentUploadMutation.isPending}
                   onClick={handleDocumentUpload}
                 >
-                  {documentUploadMutation.isPending ? 'Subiendo…' : 'Subir documento'}
+                  {documentUploadMutation.isPending ? 'Subiendo…' : documentFormFiles && documentFormFiles.length > 1 ? `Subir ${documentFormFiles.length} documentos` : 'Subir documento'}
                 </button>
               </div>
             </div>
