@@ -140,7 +140,6 @@ export interface CaseRecord {
   fiscalia?: string | null;
   jurisdiccion: Jurisdiccion;
   delito?: string | null;
-  fechaHecho?: string | null;
   estadoRequerimiento: EstadoRequerimiento;
   fuerzaAsignada?: string | null;
   recompensa: Recompensa;

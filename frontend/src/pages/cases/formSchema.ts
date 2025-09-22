@@ -74,11 +74,6 @@ export const caseFormSchema = z
     fiscalia: optionalText(255),
     jurisdiccion: z.enum(jurisdiccionOptions).default('SIN_DATO'),
     delito: optionalText(500),
-    fechaHecho: z
-      .string()
-      .regex(dateRegex, 'Formato YYYY-MM-DD')
-      .optional()
-      .or(z.literal('')),
     estadoRequerimiento: z.enum(estadoRequerimientoOptions),
     fuerzaAsignada: z.enum(fuerzaIntervinienteOptions).default('S/D'),
     recompensa: z.enum(recompensaOptions).default('SIN_DATO'),
@@ -132,7 +127,6 @@ export const defaultValues: CaseFormValues = {
   fiscalia: '',
   jurisdiccion: 'SIN_DATO',
   delito: '',
-  fechaHecho: '',
   estadoRequerimiento: 'CAPTURA_VIGENTE',
   fuerzaAsignada: 'S/D',
   recompensa: 'SIN_DATO',

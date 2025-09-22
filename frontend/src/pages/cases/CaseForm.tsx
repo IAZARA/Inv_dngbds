@@ -559,7 +559,6 @@ const CaseForm = ({
           errors.fiscalia ||
           errors.jurisdiccion ||
           errors.delito ||
-          errors.fechaHecho ||
           errors.estadoRequerimiento ||
           errors.fuerzaAsignada ||
           errors.recompensa ||
@@ -1059,11 +1058,6 @@ const CaseForm = ({
               {errors.delito && <span className="error">{errors.delito.message}</span>}
             </label>
             <label>
-              Fecha del hecho
-              <input type="date" {...register('fechaHecho')} disabled={!canEdit} />
-              {errors.fechaHecho && <span className="error">{errors.fechaHecho.message}</span>}
-            </label>
-            <label>
               Estado del requerimiento
               <select {...register('estadoRequerimiento')} disabled={!canEdit}>
                 {estadoRequerimientoOptions.map((option) => (
@@ -1099,34 +1093,67 @@ const CaseForm = ({
               {errors.recompensa && <span className="error">{errors.recompensa.message}</span>}
             </label>
             {recompensaValue === 'SI' && (
-              <div className="reward-section">
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={rewardAmountStatus === 'UNKNOWN'}
-                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                      const isUnknown = event.target.checked;
-                      setValue('rewardAmountStatus', isUnknown ? 'UNKNOWN' : 'KNOWN', {
-                        shouldDirty: true,
-                        shouldValidate: true
-                      });
-                      if (isUnknown) {
-                        setValue('rewardAmount', '', { shouldDirty: true, shouldValidate: true });
-                        clearErrors('rewardAmount');
-                      }
-                    }}
-                    disabled={!canEdit}
-                  />
-                  <span>Monto pendiente de confirmar</span>
-                </label>
-                {rewardAmountStatus === 'KNOWN' && (
-                  <label>
-                    Monto de recompensa (ARS)
-                    <input type="text" {...register('rewardAmount')} disabled={!canEdit} />
-                    {errors.rewardAmount && (
-                      <span className="error">{errors.rewardAmount.message}</span>
-                    )}
+              <div style={fieldCardStyle}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label className="checkbox-field" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontSize: '1rem',
+                    fontWeight: '500'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={rewardAmountStatus === 'UNKNOWN'}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                        const isUnknown = event.target.checked;
+                        setValue('rewardAmountStatus', isUnknown ? 'UNKNOWN' : 'KNOWN', {
+                          shouldDirty: true,
+                          shouldValidate: true
+                        });
+                        if (isUnknown) {
+                          setValue('rewardAmount', '', { shouldDirty: true, shouldValidate: true });
+                          clearErrors('rewardAmount');
+                        }
+                      }}
+                      disabled={!canEdit}
+                    />
+                    <span>Monto pendiente de confirmar</span>
                   </label>
+                </div>
+                {rewardAmountStatus === 'KNOWN' && (
+                  <div>
+                    <label style={{ display: 'block' }}>
+                      <span style={{
+                        fontSize: '1rem',
+                        fontWeight: '500',
+                        marginBottom: '0.5rem',
+                        display: 'block',
+                        color: '#374151'
+                      }}>
+                        Monto de recompensa (ARS)
+                      </span>
+                      <input
+                        type="text"
+                        {...register('rewardAmount')}
+                        disabled={!canEdit}
+                        style={{
+                          fontSize: '1rem',
+                          padding: '0.75rem',
+                          width: '100%',
+                          maxWidth: '300px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '0.375rem'
+                        }}
+                        placeholder="Ingrese el monto en pesos argentinos"
+                      />
+                      {errors.rewardAmount && (
+                        <span className="error" style={{ display: 'block', marginTop: '0.25rem' }}>
+                          {errors.rewardAmount.message}
+                        </span>
+                      )}
+                    </label>
+                  </div>
                 )}
               </div>
             )}

@@ -124,9 +124,6 @@ const CaseDetailPage = () => {
   const rewardLabel = hasReward
     ? rewardAmountValue ?? 'Monto no confirmado'
     : null;
-  const fechaHecho = caseRecord.fechaHecho
-    ? new Date(caseRecord.fechaHecho).toLocaleDateString()
-    : null;
   const createdAt = new Date(caseRecord.creadoEn).toLocaleString();
   const updatedAt = new Date(caseRecord.actualizadoEn).toLocaleString();
 
@@ -294,12 +291,6 @@ const CaseDetailPage = () => {
     });
   }
 
-  if (fechaHecho) {
-    caseHighlights.push({
-      label: 'Fecha del hecho',
-      value: fechaHecho
-    });
-  }
 
   if (juzgado) {
     caseHighlights.push({
