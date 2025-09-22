@@ -1322,3 +1322,62 @@ export const setCasePrimaryPhoto = async (caseId: string, photoId: string) => {
     return serializeMedia(updated as CaseWithRelations['media'][number]);
   });
 };
+
+export const generateAllCasesZip = async () => {
+  console.log('Iniciando generación de ZIP con todos los casos...');
+
+  // Obtener todos los casos
+  const allCases = await prisma.case.findMany({
+    include: caseInclude,
+    orderBy: { creadoEn: 'desc' }
+  });
+
+  if (allCases.length === 0) {
+    throw new AppError('No hay casos para descargar', 404, true);
+  }
+
+  console.log(`Generando ZIP para ${allCases.length} casos...`);
+
+  // Crear el archivo ZIP maestro
+  const masterArchive = archiver('zip', { zlib: { level: 5 } }); // Nivel medio de compresión para mejor rendimiento
+  const output = new PassThrough();
+  const chunks: Buffer[] = [];
+
+  const bufferPromise = new Promise<Buffer>((resolve, reject) => {
+    output.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    output.on('end', () => resolve(Buffer.concat(chunks)));
+    output.on('error', reject);
+    masterArchive.on('error', reject);
+  });
+
+  masterArchive.pipe(output);
+
+  // Procesar cada caso y agregarlo al ZIP maestro
+  let processedCount = 0;
+
+  for (const caseRecord of allCases) {
+    try {
+      // Generar el ZIP individual del caso directamente usando el ID
+      console.log(`Procesando caso ${processedCount + 1}/${allCases.length}: ID ${caseRecord.id}`);
+      const { buffer: caseZipBuffer, fileName: caseZipFileName } = await generateCaseZip(caseRecord.id);
+
+      // Agregar el ZIP individual al archivo maestro
+      masterArchive.append(caseZipBuffer, { name: caseZipFileName });
+
+      processedCount++;
+    } catch (error) {
+      console.error(`Error procesando caso ${caseRecord.id}:`, error);
+      // Continuar con el siguiente caso si hay un error
+    }
+  }
+
+  await masterArchive.finalize();
+  const buffer = await bufferPromise;
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const fileName = `TODOS_LOS_CASOS_${timestamp}.zip`;
+
+  console.log(`ZIP maestro generado exitosamente: ${fileName} (${processedCount} casos procesados)`);
+
+  return { buffer, fileName, casesProcessed: processedCount, totalCases: allCases.length };
+};

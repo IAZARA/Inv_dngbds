@@ -76,7 +76,7 @@ export const createCaseSchema = z.object({
   secretaria: z.string().max(255).optional(),
   fiscalia: z.string().max(255).optional(),
   jurisdiccion: z.enum(jurisdiccionOptions).default('SIN_DATO'),
-  delito: z.string().max(255).optional(),
+  delito: z.string().max(500).optional(),
   fechaHecho: z
     .string()
     .regex(dateRegex, 'Formato de fecha inválido (YYYY-MM-DD)')
@@ -108,7 +108,7 @@ export const updateCaseSchema = z.object({
   secretaria: z.string().max(255).optional(),
   fiscalia: z.string().max(255).optional(),
   jurisdiccion: z.enum(jurisdiccionOptions).optional(),
-  delito: z.string().max(255).optional(),
+  delito: z.string().max(500).optional(),
   fechaHecho: z
     .string()
     .regex(dateRegex, 'Formato de fecha inválido (YYYY-MM-DD)')

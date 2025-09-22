@@ -11,6 +11,7 @@ import {
   listCasesHandler,
   exportCasePdfHandler,
   exportCaseZipHandler,
+  exportAllCasesZipHandler,
   exportCasesExcelHandler,
   updateCaseDocumentDescriptionHandler,
   updateCaseHandler,
@@ -26,6 +27,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', listCasesHandler);
+router.get('/export-all-zip', requireRole(UserRole.ADMIN), exportAllCasesZipHandler);
 router.get('/:id', getCaseHandler);
 router.get('/:id/export', exportCasePdfHandler);
 router.get('/:id/export-zip', exportCaseZipHandler);

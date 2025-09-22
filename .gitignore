@@ -12,3 +12,5 @@ yarn-error.log*
 .DS_Store
 # Prisma
 prisma/dev.db
+# Claude
+.claude/

@@ -73,7 +73,7 @@ export const caseFormSchema = z
     secretaria: optionalText(255),
     fiscalia: optionalText(255),
     jurisdiccion: z.enum(jurisdiccionOptions).default('SIN_DATO'),
-    delito: optionalText(255),
+    delito: optionalText(500),
     fechaHecho: z
       .string()
       .regex(dateRegex, 'Formato YYYY-MM-DD')

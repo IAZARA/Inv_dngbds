@@ -10,6 +10,7 @@ import {
   deleteCase,
   generateCasePdf,
   generateCaseZip,
+  generateAllCasesZip,
   exportCasesToExcel,
   getCaseById,
   listCases,
@@ -229,6 +230,22 @@ export const deleteCaseDocumentHandler = async (req: Request, res: Response, nex
   try {
     await removeCaseMedia(req.params.caseId, req.params.documentId, CaseMediaKind.DOCUMENT);
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const exportAllCasesZipHandler = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { buffer, fileName, casesProcessed, totalCases } = await generateAllCasesZip();
+
+    console.log(`Enviando ZIP maestro: ${fileName} (${casesProcessed}/${totalCases} casos)`);
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('X-Cases-Processed', String(casesProcessed));
+    res.setHeader('X-Total-Cases', String(totalCases));
+    res.send(buffer);
   } catch (error) {
     next(error);
   }

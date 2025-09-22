@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
 
 const passwordSchema = z
   .object({
@@ -26,6 +27,8 @@ const SettingsPage: React.FC = () => {
   const { user, changePassword } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [downloadingAll, setDownloadingAll] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
 
   const {
     register,
@@ -54,6 +57,66 @@ const SettingsPage: React.FC = () => {
         (error as { response?: { data?: { message?: string } } }).response?.data?.message ??
         'No se pudo actualizar la contraseña';
       setServerError(message);
+    }
+  };
+
+  const handleDownloadAllCases = async () => {
+    try {
+      setDownloadingAll(true);
+      setDownloadProgress('Preparando descarga de todos los casos...');
+
+      const response = await api.get('/cases/export-all-zip', {
+        responseType: 'blob',
+        timeout: 600000, // 10 minutos de timeout
+        onDownloadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setDownloadProgress(`Descargando... ${percentCompleted}%`);
+          } else {
+            setDownloadProgress('Descargando... (esto puede tardar varios minutos)');
+          }
+        }
+      });
+
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Obtener el nombre del archivo del header o usar uno por defecto
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = `TODOS_LOS_CASOS_${new Date().toISOString().slice(0, 10)}.zip`;
+
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      // Mostrar información sobre casos procesados si está disponible
+      const casesProcessed = response.headers['x-cases-processed'];
+      const totalCases = response.headers['x-total-cases'];
+
+      if (casesProcessed && totalCases) {
+        setSuccessMessage(`Descarga completada: ${casesProcessed} de ${totalCases} casos procesados exitosamente.`);
+      } else {
+        setSuccessMessage('Descarga completada exitosamente.');
+      }
+
+      setDownloadProgress(null);
+    } catch (error) {
+      console.error('Error descargando todos los casos:', error);
+      setServerError('No se pudo descargar el archivo con todos los casos. Por favor, intenta nuevamente.');
+      setDownloadProgress(null);
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -116,6 +179,41 @@ const SettingsPage: React.FC = () => {
           </div>
         </dl>
       </div>
+
+      {user?.role === 'ADMIN' && (
+        <div className="card">
+          <h3>Administración</h3>
+          <p className="muted">Funciones exclusivas para administradores del sistema.</p>
+
+          <div className="settings-form">
+            <label>
+              <strong>Descarga masiva de casos</strong>
+              <p className="muted" style={{ marginTop: '8px', marginBottom: '16px' }}>
+                Descarga un archivo ZIP que contiene todos los casos del sistema. Cada caso incluye su PDF, Excel, fotos y documentos en un ZIP individual.
+              </p>
+
+              <button
+                className="btn primary"
+                type="button"
+                onClick={handleDownloadAllCases}
+                disabled={downloadingAll}
+                style={{ width: 'auto' }}
+              >
+                {downloadingAll ? 'Procesando...' : 'Descargar todos los casos'}
+              </button>
+
+              {downloadProgress && (
+                <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f0f4f8', borderRadius: '4px', color: '#1e293b' }}>
+                  <strong>Estado:</strong> {downloadProgress}
+                </div>
+              )}
+            </label>
+          </div>
+
+          {serverError && <div className="error-box">{serverError}</div>}
+          {successMessage && <div className="success-box">{successMessage}</div>}
+        </div>
+      )}
     </div>
   );
 };
