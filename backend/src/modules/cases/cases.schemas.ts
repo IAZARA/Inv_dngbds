@@ -77,10 +77,6 @@ export const createCaseSchema = z.object({
   fiscalia: z.string().max(255).optional(),
   jurisdiccion: z.enum(jurisdiccionOptions).default('SIN_DATO'),
   delito: z.string().max(500).optional(),
-  fechaHecho: z
-    .string()
-    .regex(dateRegex, 'Formato de fecha inválido (YYYY-MM-DD)')
-    .optional(),
   estadoRequerimiento: z.enum(estadoRequerimientoOptions),
   fuerzaAsignada: z.enum(fuerzaIntervinienteOptions).default('S/D'),
   recompensa: z.enum(recompensaOptions).default('SIN_DATO'),
@@ -109,10 +105,6 @@ export const updateCaseSchema = z.object({
   fiscalia: z.string().max(255).optional(),
   jurisdiccion: z.enum(jurisdiccionOptions).optional(),
   delito: z.string().max(500).optional(),
-  fechaHecho: z
-    .string()
-    .regex(dateRegex, 'Formato de fecha inválido (YYYY-MM-DD)')
-    .optional(),
   estadoRequerimiento: z.enum(estadoRequerimientoOptions).optional(),
   fuerzaAsignada: z.enum(fuerzaIntervinienteOptions).optional(),
   recompensa: z.enum(recompensaOptions).optional(),

@@ -154,7 +154,6 @@ model Case {
   id                  String              @id @default(uuid()) @map("case_id") @db.Uuid
   numeroExpediente    String?             @map("numero_expediente")
   numeroCausa         String?             @map("numero_causa")
-  fechaHecho          DateTime?           @map("fecha_hecho")
   estadoRequerimiento EstadoRequerimiento @map("estado_situacion")
   fuerzaAsignada      String?             @map("fuerza_asignada")
   caratula            String?             @map("caratula")

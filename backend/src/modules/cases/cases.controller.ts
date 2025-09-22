@@ -98,7 +98,6 @@ export const updateCaseHandler = async (req: Request, res: Response, next: NextF
       'fiscalia',
       'jurisdiccion',
       'delito',
-      'fechaHecho',
       'estadoRequerimiento',
       'fuerzaAsignada',
       'recompensa',

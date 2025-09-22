@@ -268,7 +268,6 @@ const serializeCase = (record: CaseWithRelations) => {
     fiscalia: record.fiscalia,
     jurisdiccion: record.jurisdiccion,
     delito: record.delito,
-    fechaHecho: toISO(record.fechaHecho),
     estadoRequerimiento: record.estadoRequerimiento,
     fuerzaAsignada: record.fuerzaAsignada,
     recompensa: record.recompensa,
@@ -309,14 +308,6 @@ const serializeCase = (record: CaseWithRelations) => {
   };
 };
 
-const buildFechaHecho = (value?: string) => {
-  if (!value) return undefined;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new AppError('Fecha inválida', 400, true);
-  }
-  return date;
-};
 
 const parseBirthdate = (value?: string) => {
   if (!value) return undefined;
@@ -774,6 +765,25 @@ export const generateCasePdf = async (id: string) => {
     });
   };
 
+  const drawAdditionalInfoSection = (title: string, entries: Array<{ label: string; value: string }>) => {
+    const valid = entries.filter((entry) => entry.label.trim().length > 0 && entry.value.trim().length > 0);
+    if (!valid.length) return;
+
+    doc.moveDown(0.6);
+    doc.font('Helvetica-Bold').fontSize(13).fillColor('#1f2937').text(title.toUpperCase());
+    doc.moveDown(0.25);
+
+    valid.forEach((entry) => {
+      doc.text('- ', { continued: true });
+      doc.font('Helvetica-Bold').text(entry.label, { continued: true });
+      doc.font('Helvetica').text(`: ${entry.value}`, {
+        width: contentWidth,
+        lineGap: 2,
+        paragraphGap: 4
+      });
+    });
+  };
+
   const formatDate = (value?: string | null) => {
     if (!value) return null;
     const date = new Date(value);
@@ -877,15 +887,11 @@ export const generateCasePdf = async (id: string) => {
     { label: 'Juzgado', value: caseData.juzgadoInterventor ?? undefined },
     { label: 'Fiscalía', value: caseData.fiscalia ?? undefined },
     { label: 'Secretaría', value: caseData.secretaria ?? undefined },
-    { label: 'Fecha del hecho', value: caseData.fechaHecho ? formatDate(caseData.fechaHecho) : null },
     { label: 'Recompensa', value: rewardSummary() }
   ]);
 
   if (caseData.additionalInfo.length > 0) {
-    drawListSection(
-      'Información complementaria',
-      caseData.additionalInfo.map((entry) => `${entry.label}: ${entry.value}`)
-    );
+    drawAdditionalInfoSection('Información complementaria', caseData.additionalInfo);
   }
 
   doc.moveDown(0.6);
@@ -1113,7 +1119,6 @@ export const createCase = async (input: CreateCaseInput) => {
         fiscalia: normalize(input.fiscalia),
         jurisdiccion: input.jurisdiccion ?? 'SIN_DATO',
         delito: normalize(input.delito),
-        fechaHecho: buildFechaHecho(input.fechaHecho),
         estadoRequerimiento: input.estadoRequerimiento,
         fuerzaAsignada: input.fuerzaAsignada,
         recompensa: input.recompensa,
@@ -1161,7 +1166,6 @@ export const updateCase = async (id: string, input: UpdateCaseInput) => {
         fiscalia: input.fiscalia !== undefined ? normalize(input.fiscalia) : undefined,
         jurisdiccion: input.jurisdiccion ?? undefined,
         delito: input.delito !== undefined ? normalize(input.delito) : undefined,
-        fechaHecho: input.fechaHecho !== undefined ? buildFechaHecho(input.fechaHecho) : undefined,
         estadoRequerimiento: input.estadoRequerimiento ?? undefined,
         fuerzaAsignada: input.fuerzaAsignada,
         recompensa: input.recompensa ?? undefined,
