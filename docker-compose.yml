@@ -45,6 +45,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - uploads-data:/app/uploads
 
   frontend:
     build:
@@ -62,3 +63,4 @@ services:
 
 volumes:
   postgres-data:
+  uploads-data:
