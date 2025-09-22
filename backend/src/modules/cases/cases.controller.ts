@@ -234,9 +234,10 @@ export const deleteCaseDocumentHandler = async (req: Request, res: Response, nex
   }
 };
 
-export const exportAllCasesZipHandler = async (_req: Request, res: Response, next: NextFunction) => {
+export const exportAllCasesZipHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { buffer, fileName, casesProcessed, totalCases } = await generateAllCasesZip();
+    const estado = req.query.estado as string | undefined;
+    const { buffer, fileName, casesProcessed, totalCases } = await generateAllCasesZip(estado);
 
     console.log(`Enviando ZIP maestro: ${fileName} (${casesProcessed}/${totalCases} casos)`);
 

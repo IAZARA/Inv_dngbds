@@ -1327,20 +1327,31 @@ export const setCasePrimaryPhoto = async (caseId: string, photoId: string) => {
   });
 };
 
-export const generateAllCasesZip = async () => {
-  console.log('Iniciando generación de ZIP con todos los casos...');
+export const generateAllCasesZip = async (estado?: string) => {
+  const estadoFilter = estado && estado !== 'TODOS' ? estado : null;
+  console.log(`Iniciando generación de ZIP ${estadoFilter ? `con estado ${estadoFilter}` : 'con todos los casos'}...`);
 
-  // Obtener todos los casos
+  // Construir el filtro donde
+  const whereClause: any = {};
+  if (estadoFilter) {
+    whereClause.estadoRequerimiento = estadoFilter;
+  }
+
+  // Obtener los casos filtrados
   const allCases = await prisma.case.findMany({
+    where: whereClause,
     include: caseInclude,
     orderBy: { creadoEn: 'desc' }
   });
 
   if (allCases.length === 0) {
-    throw new AppError('No hay casos para descargar', 404, true);
+    const message = estadoFilter
+      ? `No hay casos con estado ${estadoFilter} para descargar`
+      : 'No hay casos para descargar';
+    throw new AppError(message, 404, true);
   }
 
-  console.log(`Generando ZIP para ${allCases.length} casos...`);
+  console.log(`Generando ZIP para ${allCases.length} casos${estadoFilter ? ` con estado ${estadoFilter}` : ''}...`);
 
   // Crear el archivo ZIP maestro
   const masterArchive = archiver('zip', { zlib: { level: 5 } }); // Nivel medio de compresión para mejor rendimiento
@@ -1379,7 +1390,8 @@ export const generateAllCasesZip = async () => {
   const buffer = await bufferPromise;
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const fileName = `TODOS_LOS_CASOS_${timestamp}.zip`;
+  const estadoSuffix = estadoFilter ? `_${estadoFilter}` : '_TODOS';
+  const fileName = `CASOS${estadoSuffix}_${timestamp}.zip`;
 
   console.log(`ZIP maestro generado exitosamente: ${fileName} (${processedCount} casos procesados)`);
 

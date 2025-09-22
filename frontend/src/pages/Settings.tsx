@@ -29,6 +29,7 @@ const SettingsPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
+  const [selectedEstado, setSelectedEstado] = useState<string>('TODOS');
 
   const {
     register,
@@ -63,9 +64,12 @@ const SettingsPage: React.FC = () => {
   const handleDownloadAllCases = async () => {
     try {
       setDownloadingAll(true);
-      setDownloadProgress('Preparando descarga de todos los casos...');
+      const estadoText = selectedEstado === 'TODOS' ? 'todos los casos' : `casos con estado ${selectedEstado.replace('_', ' ')}`;
+      setDownloadProgress(`Preparando descarga de ${estadoText}...`);
 
+      const params = selectedEstado !== 'TODOS' ? { estado: selectedEstado } : {};
       const response = await api.get('/cases/export-all-zip', {
+        params,
         responseType: 'blob',
         timeout: 600000, // 10 minutos de timeout
         onDownloadProgress: (progressEvent) => {
@@ -189,8 +193,32 @@ const SettingsPage: React.FC = () => {
             <label>
               <strong>Descarga masiva de casos</strong>
               <p className="muted" style={{ marginTop: '8px', marginBottom: '16px' }}>
-                Descarga un archivo ZIP que contiene todos los casos del sistema. Cada caso incluye su PDF, Excel, fotos y documentos en un ZIP individual.
+                Descarga un archivo ZIP que contiene los casos del sistema filtrados por estado. Cada caso incluye su PDF, Excel, fotos y documentos en un ZIP individual.
               </p>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label htmlFor="estado-filter" style={{ display: 'block', marginBottom: '8px', fontWeight: 'normal' }}>
+                  Filtrar por estado:
+                </label>
+                <select
+                  id="estado-filter"
+                  value={selectedEstado}
+                  onChange={(e) => setSelectedEstado(e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#fff',
+                    fontSize: '14px',
+                    minWidth: '200px'
+                  }}
+                >
+                  <option value="TODOS">Todos los casos</option>
+                  <option value="CAPTURA_VIGENTE">Captura Vigente</option>
+                  <option value="SIN_EFECTO">Sin Efecto</option>
+                  <option value="DETENIDO">Detenido</option>
+                </select>
+              </div>
 
               <button
                 className="btn primary"
@@ -199,7 +227,7 @@ const SettingsPage: React.FC = () => {
                 disabled={downloadingAll}
                 style={{ width: 'auto' }}
               >
-                {downloadingAll ? 'Procesando...' : 'Descargar todos los casos'}
+                {downloadingAll ? 'Procesando...' : `Descargar casos ${selectedEstado === 'TODOS' ? '' : `(${selectedEstado.replace('_', ' ')})`}`.trim()}
               </button>
 
               {downloadProgress && (
