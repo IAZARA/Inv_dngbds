@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { changePassword, login } from './auth.service';
+import { generateAccessToken } from '../../utils/token';
 import { changePasswordSchema, loginSchema } from './auth.schemas';
 
 export const loginHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -23,4 +24,13 @@ export const changePasswordHandler = async (req: Request, res: Response, next: N
   } catch (error) {
     next(error);
   }
+};
+
+export const refreshHandler = async (req: Request, res: Response, _next: NextFunction) => {
+  // requireAuth garantiza req.user
+  if (!req.user) {
+    return res.status(401).json({ message: 'No autorizado' });
+  }
+  const accessToken = generateAccessToken({ sub: req.user.id, email: req.user.email, role: req.user.role });
+  return res.json({ accessToken });
 };

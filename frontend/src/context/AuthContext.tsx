@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api, setAuthToken, subscribeUnauthorized } from '../lib/api';
 import type { User } from '../types';
 
@@ -19,6 +19,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setTokenState] = useState<string | null>(() => localStorage.getItem('token'));
   const [user, setUser] = useState<User | null>(null);
   const [initializing, setInitializing] = useState(true);
+  const lastActivityRef = useRef<number>(Date.now());
+  const refreshIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     setAuthToken(token);
@@ -33,6 +35,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       unsubscribe();
     };
   }, []);
+
+  // Marca actividad por eventos de usuario y peticiones
+  useEffect(() => {
+    const markActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    const events: Array<keyof DocumentEventMap> = ['click', 'keydown', 'mousemove', 'scroll', 'visibilitychange'];
+    events.forEach((evt) => window.addEventListener(evt, markActivity, { passive: true }));
+
+    const reqInterceptor = api.interceptors.request.use((config) => {
+      markActivity();
+      return config;
+    });
+    const resInterceptor = api.interceptors.response.use(
+      (response) => {
+        markActivity();
+        return response;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    return () => {
+      events.forEach((evt) => window.removeEventListener(evt, markActivity));
+      api.interceptors.request.eject(reqInterceptor);
+      api.interceptors.response.eject(resInterceptor);
+    };
+  }, []);
+
+  // Renueva el token si hay actividad reciente
+  useEffect(() => {
+    // Limpia interval anterior
+    if (refreshIntervalRef.current) {
+      window.clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
+
+    if (!token) return;
+
+    const REFRESH_POLL_MS = 5 * 60 * 1000; // cada 5 minutos
+    const ACTIVITY_WINDOW_MS = 2 * 60 * 1000; // si hubo actividad en últimos 2 minutos
+
+    const tick = async () => {
+      const now = Date.now();
+      if (now - lastActivityRef.current <= ACTIVITY_WINDOW_MS) {
+        try {
+          const { data } = await api.post<{ accessToken: string }>('/auth/refresh');
+          setTokenState(data.accessToken);
+        } catch (err) {
+          // Si falla, no forzamos logout aquí; el flujo 401 global lo manejará
+        }
+      }
+    };
+
+    // Ejecuta un primer intento a los 5 minutos
+    refreshIntervalRef.current = window.setInterval(tick, REFRESH_POLL_MS);
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        window.clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    };
+  }, [token]);
 
   useEffect(() => {
     if (!token) {
