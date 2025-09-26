@@ -66,6 +66,15 @@ const CaseDetailPage = () => {
   const [downloading, setDownloading] = useState(false);
   const [zipDownloading, setZipDownloading] = useState(false);
 
+  const handleBack = () => {
+    const idx = (window.history.state && (window.history.state as any).idx) ?? 0;
+    if (idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/cases', { replace: true });
+    }
+  };
+
   const persona = caseRecord?.persona ?? null;
   const statusClass = caseRecord ? statusVariant(caseRecord.estadoRequerimiento) : 'danger';
   const statusLabel = caseRecord ? translateEstado(caseRecord.estadoRequerimiento) : '';
@@ -414,7 +423,7 @@ const CaseDetailPage = () => {
     <div className="page case-detail">
       <div className="page-header case-detail__page-header">
         <div className="case-detail__header-actions" style={{ justifyContent: 'space-between' }}>
-          <button className="btn ghost" type="button" onClick={() => navigate('/cases')}>
+          <button className="btn ghost" type="button" onClick={handleBack}>
             Volver
           </button>
           <div style={{ display: 'flex', gap: '8px' }}>

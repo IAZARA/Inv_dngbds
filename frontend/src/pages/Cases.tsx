@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +15,7 @@ import type { CaseFormValues } from './cases/formSchema';
 type CasesListResponse = { cases: CaseRecord[] };
 
 const CasesPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -40,6 +42,27 @@ const CasesPage = () => {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
+
+  // Initialize filters and pagination from URL search params on mount
+  useEffect(() => {
+    const q = searchParams.get('q') ?? '';
+    const estado = (searchParams.get('estado') ?? 'TODOS') as 'TODOS' | EstadoRequerimiento;
+    const jurisdiccion = (searchParams.get('jurisdiccion') ?? 'TODAS') as
+      | 'TODAS'
+      | CaseFormValues['jurisdiccion'];
+    const fuerza = (searchParams.get('fuerza') ?? 'TODAS') as
+      | 'TODAS'
+      | CaseFormValues['fuerzaAsignada'];
+    const pageParam = Number(searchParams.get('page') ?? '1');
+    const page = Number.isFinite(pageParam) && pageParam >= 1 ? pageParam : 1;
+
+    setSearchTerm(q);
+    setEstadoFilter(estado);
+    setJurisdiccionFilter(jurisdiccion);
+    setFuerzaFilter(fuerza);
+    setCurrentPage(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const casesQuery = useQuery({
     queryKey: ['cases'],
@@ -144,6 +167,17 @@ const CasesPage = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, estadoFilter, jurisdiccionFilter, fuerzaFilter, handledCases.length]);
+
+  // Keep URL search params in sync with current filters and page
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('q', searchTerm);
+    if (estadoFilter !== 'TODOS') params.set('estado', estadoFilter);
+    if (jurisdiccionFilter !== 'TODAS') params.set('jurisdiccion', jurisdiccionFilter);
+    if (fuerzaFilter !== 'TODAS') params.set('fuerza', fuerzaFilter);
+    if (currentPage !== 1) params.set('page', String(currentPage));
+    setSearchParams(params, { replace: true });
+  }, [searchTerm, estadoFilter, jurisdiccionFilter, fuerzaFilter, currentPage, setSearchParams]);
 
   useEffect(() => {
     setSelectedIds((current) =>
